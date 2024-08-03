@@ -1,9 +1,11 @@
-var express = require("express");
-var app = express();
-var expressWs = require("express-ws")(app);
+const express = require("express");
+const app = express();
+const expressWs = require("express-ws")(app);
 
 const port = 3000;
 const hostname = "localhost";
+
+app.use(express.static("public"));
 
 // defines middleware for every incoming request
 app.use((req, res, next) => {
@@ -21,13 +23,18 @@ app.get("/hello", (req, res, next) => {
 	res.send(req.testing).end();
 });
 
-app.ws("/", (ws, req) => {
+app.ws("/echo", (ws, req) => {
 	ws.on("message", (msg) => {
-		console.log(msg);
+		console.log(`Received message: ${msg}`);
+		// Echo the message back to the client
+		ws.send(`Server received: ${msg}`);
 	});
-	console.log("socket", req.testing);
+
+	ws.on("close", () => {
+		console.log("Client disconnected");
+	});
 });
 
 app.listen(port, hostname, () => {
-	console.log(`Listening at: http://${hostname}:${port}`);
+	console.log(`Websocket server running on: ws://${hostname}:${port}/echo`);
 });
