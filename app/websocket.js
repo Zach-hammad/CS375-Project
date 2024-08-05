@@ -37,4 +37,5 @@ app.ws("/echo", (ws, req) => {
 
 app.listen(port, hostname, () => {
 	console.log(`Websocket server running on: ws://${hostname}:${port}/echo`);
+	console.log(`Listening at: http://${hostname}:${port}`);
 });
