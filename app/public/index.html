@@ -24,7 +24,9 @@
 
 			ws.onmessage = (event) => {
 				const p = document.createElement("p");
-				p.textContent = `${event.data}`;
+				const dateTime = new Date().toLocaleDateString();
+
+				p.textContent = `${dateTime}: ${event.data}`;
 
 				document.getElementById("response").appendChild(p);
 			};
