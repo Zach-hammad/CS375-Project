@@ -17,9 +17,9 @@ module.exports = (app) => {
 
 	app.ws("/echo", (ws, req) => {
 		ws.on("message", (msg) => {
-			const dateTime = new Date().toLocaleDateString();
+			const dateTime = new Date();
 
-			console.log(`@${dateTime}: Received message: ${msg}`);
+			console.log(`@${dateTime.toLocaleString()}: Received message: ${msg}`);
 			// Echo the message back to the client
 			ws.send(`Server received: ${msg}`);
 		});
