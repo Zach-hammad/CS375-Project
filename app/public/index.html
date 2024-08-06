@@ -8,7 +8,7 @@
 	<body>
 		<input type="text" id="messageInput" placeholder="Enter a message" />
 		<button id="send">Send Message</button>
-		<p id="response"></p>
+		<div id="response"></div>
 
 		<script>
 			const ws = new WebSocket("ws://localhost:3000/echo");
@@ -23,7 +23,10 @@
 			};
 
 			ws.onmessage = (event) => {
-				document.getElementById("response").textContent = `${event.data}`;
+				const p = document.createElement("p");
+				p.textContent = `${event.data}`;
+
+				document.getElementById("response").appendChild(p);
 			};
 
 			ws.onclose = () => {
