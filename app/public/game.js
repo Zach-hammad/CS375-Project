@@ -206,6 +206,7 @@ function newHand(player, dealer){
     betDisplay.style.display = "none";
     message.textContent = "";
 
+    //reshuffle when low enough
     if (deck.length < 30) deck = shuffle(3);
 
     //start the player's hand
@@ -220,6 +221,9 @@ function newHand(player, dealer){
     dealer.cards.push(deck.pop());
     //dealer.cards = [["SPADE", "ACE"]];
     dealer.cardValue = getCardValue(dealer.cards);
+
+    //check which side bets were won
+    checkBets(player,dealer);
 
     console.log(JSON.stringify(player));
     console.log(JSON.stringify(player));
@@ -238,8 +242,6 @@ function newHand(player, dealer){
     if(dealer.cards[0][1] === "ACE"){
         insurance.style.display = "";
     }
-
-    checkBets(player,dealer);
 
     displayPlayer.textContent = hand.cards;
     displayDealer.textContent = dealer.cards;
@@ -267,10 +269,12 @@ function payout(player,dealer){
     if (!(player.hands.length === 0)){
         for (let i = 0; i < player.hands.length; i++){
             console.log(player.hands[i]);
+            //blackjack
             if (player.hands[i].blackjack){
                 player.balance += (2.5 * player.bet);
                 console.log(JSON.stringify("blackjack"));
             }
+            //win
             else if (player.hands[i].win === 1) {
                 if(player.hands[i].doubleDown){
                     player.balance += (4 * player.bet);
@@ -281,6 +285,7 @@ function payout(player,dealer){
                     console.log(JSON.stringify("win"));
                 }
             }
+            //draw
             else if (player.hands[i].win === 2){
                 if(player.hands[i].doubleDown){
                     player.balance += (2 * player.bet);
@@ -291,11 +296,11 @@ function payout(player,dealer){
                     console.log(JSON.stringify("draw"));
                 }
             }
+            //loss
             else console.log(JSON.stringify("lose"));
     }}
 
     return;
-    // check for win / draw / blackjack
 }
 
 ////////// Reset //////////
@@ -308,6 +313,7 @@ function reset(player,dealer){
     betDisplay.style.display = "";
     sideMessage.textContent = "";
 
+    //payout
     payout(player,dealer);
 
     balance.textContent = player.balance;
@@ -333,6 +339,7 @@ function hitFunction(player){
     let value = 0;
     let hand = player.hands[player.handsDone];
 
+    //add a new card to active hand
     value = getCard(hand.cards);
     hand.cardValue = value;
     displayPlayer.textContent = hand.cards;
@@ -341,6 +348,8 @@ function hitFunction(player){
     if(hand.cards.length > 2){
         double.style.display = "none";
     }
+
+    //add code to take off insurance after first turn
 
     //check if bust or blackjack
     if (value >= 21){
@@ -364,12 +373,13 @@ hit.addEventListener("click", () => {
 ////////// End Turn //////////
 
 function checkWin (hand){
-    //check if dealer busts
+    //check for blackjack
     if ((hand.cardValue == 21) && !(dealer.cardValue === 21)) {
         hand.win = 1;
         hand.blackjack = true;
         message.textContent = "Blackjack!";
     }
+    //check for dealer bust
     else if ((hand.cardValue < 21) && (dealer.cardValue > 21)) {
         hand.win = 1;
         message.textContent = "Win";
@@ -399,16 +409,20 @@ function endDealer(dealer){
         dealer.cardValue = getCardValue(dealer.cards);
         displayDealer.textContent = dealer.cards;
     }
+    //check for dealer blackjack
     if (dealer.cardValue === 21) dealer.blackjack = true;
     console.log(JSON.stringify(dealer));
     return;
 }
 
 function endTurn(player){
+    //mark hand as done
     player.hands[player.handsDone].done = true;
     player.handsDone += 1;
 
+    //if not all hands are done, hit the next hand
     if (!(player.handsDone === player.hands.length)) hitFunction(player);
+    //else end the turn, check for a win, and reset hand
     else {
         endDealer(dealer);
         for (let i = 0; i < player.hands.length; i++){
@@ -436,6 +450,7 @@ betReady.addEventListener("click", () => {
 })
 
 sideBetReady.addEventListener("click", () => {
+    //check if side bet exists, and enter into object
     if (player.sideBets.hasOwnProperty(sideBet.value)){
         player.sideBets[sideBet.value] = sideBetValue.value;
     }
@@ -447,6 +462,7 @@ sideBetReady.addEventListener("click", () => {
 ////////// Double Functions //////////
 
 double.addEventListener("click", () => {
+    //minus bet, hit, if turn not done, end turn
     let hand = player.hands[player.handsDone];
     player.balance -= player.bet;
     hand.doubleDown = true;
@@ -461,12 +477,14 @@ double.addEventListener("click", () => {
 split.addEventListener("click", ()=>{
     split.style.display = "none";
 
+    //create a new hand with one card in each hand
     player.hands.push(new initHand());
     player.hands[player.hands.length - 1].cards.push(player.hands[player.handsDone].cards.pop());
     let first = player.hands[player.handsDone];
     let second = player.hands[player.hands.length - 1];
     first.cardValue = getCardValue(first.cards);
     second.cardValue = getCardValue(second.cards);
+    
     // add logic if split cards are aces, add one card to each and end both turns
     player.balance -= player.bet;
     hitFunction(player);
