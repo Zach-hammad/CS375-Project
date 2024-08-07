@@ -1,4 +1,6 @@
 module.exports = (app) => {
+	const clients = [];
+
 	// defines middleware for every incoming request
 	app.use((req, res, next) => {
 		// adds a property called "testing" to the request object, making it available in any subsequent handler
@@ -9,23 +11,37 @@ module.exports = (app) => {
 		return next();
 	});
 
-	app.get("/hello", (req, res, next) => {
-		console.log("get route", req.testing);
-
-		res.send(req.testing).end();
-	});
-
 	app.ws("/echo", (ws, req) => {
-		ws.on("message", (msg) => {
+		const dateTime = new Date();
+
+		function broadcastMessage(message) {
+			clients.forEach((client) => {
+				if (client.readyState === client.OPEN) {
+					client.send(message);
+				}
+			});
+		}
+
+		clients.push(ws);
+		console.log(`@${dateTime.toLocaleString()}: New client connected. Total clients: ${clients.length}`);
+
+		ws.on("message", (message) => {
 			const dateTime = new Date();
 
-			console.log(`@${dateTime.toLocaleString()}: Received message: ${msg}`);
-			// Echo the message back to the client
-			ws.send(`Server received: ${msg}`);
+			console.log(`@${dateTime.toLocaleString()}: Received message: ${message}`);
+			broadcastMessage(message);
 		});
 
 		ws.on("close", () => {
 			console.log("Client disconnected");
+
+			const index = clients.indexOf(ws);
+
+			if (index !== -1) {
+				clients.splice(index, 1);
+			}
+
+			console.log(`Total clients: ${clients.length}`);
 		});
 	});
 };
