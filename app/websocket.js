@@ -1,47 +1,52 @@
 module.exports = (app) => {
-	const clients = [];
+	const lobbies = {};
 
-	// defines middleware for every incoming request
-	app.use((req, res, next) => {
-		// adds a property called "testing" to the request object, making it available in any subsequent handler
-		// currently testing with just the url
-		req.testing = `you're on ${req.url}`;
-
-		// makes server continue processing the request by moving on to the next handler
-		return next();
-	});
-
-	app.ws("/echo", (ws, req) => {
+	app.ws("/:lobbyCode", (ws, req) => {
 		const dateTime = new Date();
+		const lobbyCode = parseInt(req.params.lobbyCode, 10);
 
-		function broadcastMessage(message) {
-			clients.forEach((client) => {
-				if (client.readyState === client.OPEN) {
-					client.send(message);
-				}
-			});
-		}
-
-		clients.push(ws);
-		console.log(`@${dateTime.toLocaleString()}: New client connected. Total clients: ${clients.length}`);
-
-		ws.on("message", (message) => {
-			const dateTime = new Date();
-
-			console.log(`@${dateTime.toLocaleString()}: Received message: ${message}`);
-			broadcastMessage(message);
-		});
-
-		ws.on("close", () => {
-			console.log("Client disconnected");
-
-			const index = clients.indexOf(ws);
-
-			if (index !== -1) {
-				clients.splice(index, 1);
+		if (Number.isInteger(lobbyCode)) {
+			if (!lobbies[lobbyCode]) {
+				lobbies[lobbyCode] = [];
 			}
 
-			console.log(`Total clients: ${clients.length}`);
-		});
+			lobbies[lobbyCode].push(ws);
+			console.log(`@${dateTime.toLocaleString()}: New client connected to lobby <${lobbyCode}>. Total clients in this lobby: ${lobbies[lobbyCode].length}`);
+
+			function broadcastMessage(message) {
+				lobbies[lobbyCode].forEach((client) => {
+					if (client.readyState === client.OPEN) {
+						client.send(message);
+					}
+				});
+			}
+
+			ws.on("message", (message) => {
+				const dateTime = new Date();
+
+				broadcastMessage(message);
+				console.log(`@${dateTime.toLocaleString()}: Received message in lobby <${lobbyCode}>: "${message}"`);
+			});
+
+			ws.on("close", () => {
+				const dateTime = new Date();
+				const index = lobbies[lobbyCode].indexOf(ws);
+
+				console.log(`@${dateTime.toLocaleString()}: Client disconnected from lobby <${lobbyCode}>`);
+
+				if (index !== -1) {
+					lobbies[lobbyCode].splice(index, 1);
+				}
+
+				console.log(`@${dateTime.toLocaleString()}: Total clients in lobby <${lobbyCode}>: ${lobbies[lobbyCode].length}`);
+
+				if (lobbies[lobbyCode].length === 0) {
+					delete lobbies[lobbyCode];
+					console.log(`@${dateTime.toLocaleString()}: Lobby <${lobbyCode}> closed.`);
+				}
+			});
+		} else {
+			ws.close(400, "Invalid lobby code.");
+		}
 	});
 };

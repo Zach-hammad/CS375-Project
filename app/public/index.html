@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
+		<title>Chat Lobby</title>
 		<style>
 			#chatBox {
 				width: 100%;
@@ -14,35 +14,87 @@
 			.message {
 				margin: 5px 5px;
 			}
+			#chatInterface {
+				display: none;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="chatBox"></div>
-		<input type="text" id="messageInput" placeholder="Enter a message" />
-		<button id="sendButton">Send</button>
+		<div id="lobbyInterface">
+			<input type="text" id="lobbyCodeInput" placeholder="Enter lobby code" />
+			<button id="lobbyConnectButton">Connect to Lobby</button>
+		</div>
+		<div id="chatInterface">
+			<div id="lobbyInfo">
+				<span id="lobbyCodeDisplay"></span>
+				<button id="exitLobbyButton">Exit Lobby</button>
+			</div>
+			<div id="chatBox"></div>
+			<input type="text" id="messageInput" placeholder="Enter a message" />
+			<button id="sendMessageButton">Send</button>
+		</div>
 
 		<script>
-			const ws = new WebSocket("ws://localhost:3000/echo");
-
+			let ws;
+			const lobbyInterface = document.getElementById("lobbyInterface");
+			const lobbyCodeInput = document.getElementById("lobbyCodeInput");
+			const lobbyConnectButton = document.getElementById("lobbyConnectButton");
+			const chatInterface = document.getElementById("chatInterface");
 			const chatBox = document.getElementById("chatBox");
 			const messageInput = document.getElementById("messageInput");
-			const sendButton = document.getElementById("sendButton");
+			const sendMessageButton = document.getElementById("sendMessageButton");
+			const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
+			const exitLobbyButton = document.getElementById("exitLobbyButton");
 
-			ws.onmessage = (event) => {
-				const message = document.createElement("div");
-				const dateTime = new Date();
+			lobbyConnectButton.addEventListener("click", () => {
+				const lobbyCode = lobbyCodeInput.value.trim();
 
-				message.className = "message";
-				message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
+				if (lobbyCode === "") {
+					alert("Please enter a valid lobby code.");
+					return;
+				}
 
-				chatBox.appendChild(message);
-				chatBox.scrollTop = chatBox.scrollHeight;
-			};
+				if (ws) {
+					ws.close();
+				}
 
-			sendButton.addEventListener("click", () => {
+				ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
+
+				ws.onopen = () => {
+					lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
+					lobbyInterface.style.display = "none";
+					chatInterface.style.display = "block";
+				};
+
+				ws.onmessage = (event) => {
+					const message = document.createElement("div");
+					const dateTime = new Date();
+
+					message.className = "message";
+					message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
+
+					chatBox.appendChild(message);
+					chatBox.scrollTop = chatBox.scrollHeight;
+				};
+
+				ws.onclose = () => {
+					const message = document.createElement("div");
+
+					message.className = "message";
+					message.textContent = "Disconnected from the lobby.";
+
+					chatBox.appendChild(message);
+					chatBox.scrollTop = chatBox.scrollHeight;
+
+					chatInterface.style.display = "none";
+					lobbyInterface.style.display = "block";
+				};
+			});
+
+			sendMessageButton.addEventListener("click", () => {
 				const message = messageInput.value;
 
-				if (message.trim() !== "") {
+				if (message.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
 					ws.send(message);
 					messageInput.value = "";
 				}
@@ -50,7 +102,14 @@
 
 			messageInput.addEventListener("keypress", (event) => {
 				if (event.key === "Enter") {
-					sendButton.click();
+					sendMessageButton.click();
+				}
+			});
+
+			exitLobbyButton.addEventListener("click", () => {
+				if (ws && ws.readyState === WebSocket.OPEN) {
+					ws.send("A user has exited the lobby.");
+					ws.close();
 				}
 			});
 		</script>
