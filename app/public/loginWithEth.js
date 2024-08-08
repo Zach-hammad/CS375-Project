@@ -31,7 +31,7 @@ async function loginWithEth() {
       window.localStorage.setItem('userETHaddress', account);
       console.log(`Logged in with ETH address: ${account}`);
       
-      // Save the nickname and ETH address to the backend
+
       const response = await fetch('/save-nickname', {
         method: 'POST',
         headers: {
