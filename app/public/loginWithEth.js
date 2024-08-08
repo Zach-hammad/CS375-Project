@@ -17,13 +17,35 @@ window.onload = function() {
 }
 
 async function loginWithEth() {
+  const nickname = document.getElementById("nickname").value;
+  if (!nickname) {
+    alert('Please enter a nickname.');
+    return;
+  }
+
   if (window.ethereum) {
     try {
       const accounts = await window.web3.eth.getAccounts();
-      const account = accounts[0]; // This is the currently selected account in MetaMask
+      const account = accounts[0]; 
       console.log(account);
       window.localStorage.setItem('userETHaddress', account);
       console.log(`Logged in with ETH address: ${account}`);
+      
+      // Save the nickname and ETH address to the backend
+      const response = await fetch('/save-nickname', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ethAddress: account, nickname: nickname }),
+      });
+      
+      const result = await response.json();
+      if (response.ok) {
+        console.log('Nickname saved:', result);
+      } else {
+        console.error('Error saving nickname:', result.error);
+      }
     } catch (error) {
       console.error('Error fetching accounts:', error);
     }
