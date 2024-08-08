@@ -1,12 +1,16 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const path = require('path');
 
-app.set('view engine', 'ejs');
+const app = express();
+const PORT = 3000;
 
+// Serve static files from the 'app/public' directory
+app.use(express.static(path.join(__dirname, 'app/public')));
 
-app.get('/', function(req, res) {
-  res.render('pages/home');
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'app/public', 'login.html'));
 });
 
-app.listen(8080);
-console.log('Server is listening on port 8080');
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
