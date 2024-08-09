@@ -1,67 +1,117 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Demo</title>
-	<style>
-		input, button {
-			display: block;
-			margin: 1rem 0;
-		}
-	</style>
-</head>
-<body>
-
-<p>Enter some data:</p>
-
-<input type="text" id="datum">
-
-<button id="submit">Submit</button>
-
-<p>All data:</p>
-
-<div id="data"></div>
-
-<script>
-let input = document.getElementById("datum");
-let button = document.getElementById("submit");
-let div = document.getElementById("data");
-
-function populate() {
-	div.textContent = "";
-	fetch("/data").then(response => response.json()).then(body => {
-		let data = body.data;
-		if (data.length === 0) {
-			div.textContent = "No data yet"
-		} else {
-			for (let obj of data) {
-				let datumDiv = document.createElement("div")
-				datumDiv.textContent = obj.datum;
-				div.append(datumDiv);
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Chat Lobby</title>
+		<style>
+			#chatBox {
+				width: 100%;
+				height: 100px;
+				border: 1px solid black;
+				overflow-y: scroll;
 			}
-		}
-	});
-}
+			.message {
+				margin: 5px 5px;
+			}
+			#chatInterface {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="lobbyInterface">
+			<input type="text" id="lobbyCodeInput" placeholder="Enter lobby code" />
+			<button id="lobbyConnectButton">Connect to Lobby</button>
+		</div>
+		<div id="chatInterface">
+			<div id="lobbyInfo">
+				<span id="lobbyCodeDisplay"></span>
+				<button id="exitLobbyButton">Exit Lobby</button>
+			</div>
+			<div id="chatBox"></div>
+			<input type="text" id="messageInput" placeholder="Enter a message" />
+			<button id="sendMessageButton">Send</button>
+		</div>
 
-button.addEventListener("click", () => {
-	fetch("/datum", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-		},
-		body: JSON.stringify({datum: input.value})
-	}).then(response => {
-		return response.json();
-	}).then(body => {
-		populate();
-	}).catch(error => {
-		console.log(error);
-	})
-});
+		<script>
+			let ws;
+			const lobbyInterface = document.getElementById("lobbyInterface");
+			const lobbyCodeInput = document.getElementById("lobbyCodeInput");
+			const lobbyConnectButton = document.getElementById("lobbyConnectButton");
+			const chatInterface = document.getElementById("chatInterface");
+			const chatBox = document.getElementById("chatBox");
+			const messageInput = document.getElementById("messageInput");
+			const sendMessageButton = document.getElementById("sendMessageButton");
+			const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
+			const exitLobbyButton = document.getElementById("exitLobbyButton");
 
-populate();
-</script>
+			lobbyConnectButton.addEventListener("click", () => {
+				const lobbyCode = lobbyCodeInput.value.trim();
 
-</body>
+				if (lobbyCode === "") {
+					alert("Please enter a valid lobby code.");
+					return;
+				}
+
+				if (ws) {
+					ws.close();
+				}
+
+				ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
+
+				ws.onopen = () => {
+					lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
+					lobbyInterface.style.display = "none";
+					chatInterface.style.display = "block";
+				};
+
+				ws.onmessage = (event) => {
+					const message = document.createElement("div");
+					const dateTime = new Date();
+
+					message.className = "message";
+					message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
+
+					chatBox.appendChild(message);
+					chatBox.scrollTop = chatBox.scrollHeight;
+				};
+
+				ws.onclose = () => {
+					const message = document.createElement("div");
+
+					message.className = "message";
+					message.textContent = "Disconnected from the lobby.";
+
+					chatBox.appendChild(message);
+					chatBox.scrollTop = chatBox.scrollHeight;
+
+					chatInterface.style.display = "none";
+					lobbyInterface.style.display = "block";
+				};
+			});
+
+			sendMessageButton.addEventListener("click", () => {
+				const message = messageInput.value;
+
+				if (message.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
+					ws.send(message);
+					messageInput.value = "";
+				}
+			});
+
+			messageInput.addEventListener("keypress", (event) => {
+				if (event.key === "Enter") {
+					sendMessageButton.click();
+				}
+			});
+
+			exitLobbyButton.addEventListener("click", () => {
+				if (ws && ws.readyState === WebSocket.OPEN) {
+					ws.send("A user has exited the lobby.");
+					ws.close();
+				}
+			});
+		</script>
+	</body>
 </html>
