@@ -482,7 +482,9 @@ split.addEventListener("click", ()=>{
     player.hands[player.hands.length - 1].cards.push(player.hands[player.handsDone].cards.pop());
     let first = player.hands[player.handsDone];
     let second = player.hands[player.hands.length - 1];
+    //check for blackjack
     first.cardValue = getCardValue(first.cards);
+    //check for blackjack
     second.cardValue = getCardValue(second.cards);
     
     // add logic if split cards are aces, add one card to each and end both turns
