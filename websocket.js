@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const expressWs = require("express-ws")(app);
 
-const port = 3000;
+const port = 8080;
 const hostname = "localhost";
 
 app.use(express.static("public"));

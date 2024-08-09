@@ -1,34 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
-	</head>
-	<body>
-		<input type="text" id="messageInput" placeholder="Enter a message" />
-		<button id="send">Send Message</button>
-		<p id="response"></p>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Demo</title>
+	<style>
+		input, button {
+			display: block;
+			margin: 1rem 0;
+		}
+	</style>
+</head>
+<body>
 
-		<script>
-			const ws = new WebSocket("ws://localhost:3000/echo");
+<p>Enter some data:</p>
 
-			document.getElementById("send").addEventListener("click", () => {
-				const message = document.getElementById("messageInput").value;
-				ws.send(message);
-			});
+<input type="text" id="datum">
 
-			ws.onopen = () => {
-				console.log("Connected to WebSocket server");
-			};
+<button id="submit">Submit</button>
 
-			ws.onmessage = (event) => {
-				document.getElementById("response").textContent = `${event.data}`;
-			};
+<p>All data:</p>
 
-			ws.onclose = () => {
-				console.log("Disconnected from WebSocket server");
-			};
-		</script>
-	</body>
+<div id="data"></div>
+
+<script>
+let input = document.getElementById("datum");
+let button = document.getElementById("submit");
+let div = document.getElementById("data");
+
+function populate() {
+	div.textContent = "";
+	fetch("/data").then(response => response.json()).then(body => {
+		let data = body.data;
+		if (data.length === 0) {
+			div.textContent = "No data yet"
+		} else {
+			for (let obj of data) {
+				let datumDiv = document.createElement("div")
+				datumDiv.textContent = obj.datum;
+				div.append(datumDiv);
+			}
+		}
+	});
+}
+
+button.addEventListener("click", () => {
+	fetch("/datum", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({datum: input.value})
+	}).then(response => {
+		return response.json();
+	}).then(body => {
+		populate();
+	}).catch(error => {
+		console.log(error);
+	})
+});
+
+populate();
+</script>
+
+</body>
 </html>
