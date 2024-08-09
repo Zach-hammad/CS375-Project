@@ -9,7 +9,6 @@ process.chdir(__dirname);
 let port = 8080;
 let host;
 let databaseConfig;
-console.log(process.env);
 
 // fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
 if (process.env.NODE_ENV == "production") {
@@ -20,6 +19,7 @@ if (process.env.NODE_ENV == "production") {
 	let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
 	databaseConfig = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
 }
+console.log(databaseConfig);
 
 let app = express();
 app.use(express.json());
