@@ -61,9 +61,13 @@
 				ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
 
 				ws.onopen = () => {
+					const dateTime = new Date();
+
 					lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
 					lobbyInterface.style.display = "none";
 					chatInterface.style.display = "block";
+					// later should display user's "name"
+					ws.send(`@${dateTime.toLocaleString()}: A user has entered the lobby.`);
 				};
 
 				ws.onmessage = (event) => {
@@ -78,14 +82,7 @@
 				};
 
 				ws.onclose = () => {
-					const message = document.createElement("div");
-
-					message.className = "message";
-					message.textContent = "Disconnected from the lobby.";
-
-					chatBox.appendChild(message);
-					chatBox.scrollTop = chatBox.scrollHeight;
-
+					chatBox.textContent = "";
 					chatInterface.style.display = "none";
 					lobbyInterface.style.display = "block";
 				};
@@ -108,7 +105,10 @@
 
 			exitLobbyButton.addEventListener("click", () => {
 				if (ws && ws.readyState === WebSocket.OPEN) {
-					ws.send("A user has exited the lobby.");
+					const dateTime = new Date();
+
+					// later should display user's "name"
+					ws.send(`@${dateTime.toLocaleString()}: A user has exited the lobby.`);
 					ws.close();
 				}
 			});
