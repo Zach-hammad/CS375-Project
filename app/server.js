@@ -1,14 +1,19 @@
 let express = require("express");
+let app = express();
+app.use(express.json());
+app.use(express.static("public"));
+let expressWs = require("express-ws")(app);
+
 let { Pool } = require("pg");
+
+let port = 8080;
+let host;
+let databaseConfig;
 
 // make this script's dir the cwd
 // b/c npm run start doesn't cd into src/ to run this
 // and if we aren't in its cwd, all relative paths will break
 process.chdir(__dirname);
-
-let port = 8080;
-let host;
-let databaseConfig;
 
 // fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
 if (process.env.NODE_ENV == "production") {
@@ -20,10 +25,6 @@ if (process.env.NODE_ENV == "production") {
 	databaseConfig = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
 }
 console.log(databaseConfig);
-
-let app = express();
-app.use(express.json());
-app.use(express.static("public"));
 
 // uncomment these to debug
 // console.log(JSON.stringify(process.env, null, 2));
@@ -64,5 +65,5 @@ require("./websocket")(app);
 
 app.listen(port, host, () => {
 	console.log(`http://${host}:${port}`);
-	console.log(`Websocket server(s) running on: ws://${hostname}:${port}/:lobbyCode`);
+	console.log(`Websocket server(s) running on: ws://${host}:${port}/:lobbyCode`);
 });
