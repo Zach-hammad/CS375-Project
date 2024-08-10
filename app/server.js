@@ -39,23 +39,30 @@ app.post("/datum", (req, res) => {
 	if (datum === undefined) {
 		return res.status(400).send({});
 	}
-	pool.query("INSERT INTO foo (datum) VALUES ($1)", [datum]).then(result => {
-		return res.send({});
-	}).catch(error => {
-		console.log(error);
-		return res.status(500).send({});
-	})
+	pool.query("INSERT INTO foo (datum) VALUES ($1)", [datum])
+		.then((result) => {
+			return res.send({});
+		})
+		.catch((error) => {
+			console.log(error);
+			return res.status(500).send({});
+		});
 });
 
 app.get("/data", (req, res) => {
-	pool.query("SELECT * FROM foo").then(result => {
-		return res.send({data: result.rows});
-	}).catch(error => {
-		console.log(error);
-		return res.status(500).send({data: []});
-	})
-})
+	pool.query("SELECT * FROM foo")
+		.then((result) => {
+			return res.send({ data: result.rows });
+		})
+		.catch((error) => {
+			console.log(error);
+			return res.status(500).send({ data: [] });
+		});
+});
+
+require("./websocket")(app);
 
 app.listen(port, host, () => {
 	console.log(`http://${host}:${port}`);
+	console.log(`Websocket server(s) running on: ws://${hostname}:${port}/:lobbyCode`);
 });
