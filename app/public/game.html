@@ -5,8 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blackjack</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            padding: 1rem;
+        }
+    </style>
 </head>
 <body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="game.html">Game</a>
+        <a href="websocket.html">WebSocket</a>
+        <a href="blackjack.html">Blackjack</a>
+    </nav>
+
     <div class="container">
         <p>Dealer's Cards</p>  
         <p id="dealer"></p>
@@ -24,9 +56,9 @@
 
         <div id="betDisplay">
             <div>
-            <label for="betValue">Bet Amount</label>
-            <input type="text" id="betValue" placeholder="Enter amount"><br>
-            <button id="betReady">BET</button>
+                <label for="betValue">Bet Amount</label>
+                <input type="text" id="betValue" placeholder="Enter amount"><br>
+                <button id="betReady">BET</button>
             </div>
 
             <div class="form-group">
@@ -34,9 +66,8 @@
                 <select id="sideBet" name="sideBet" required>
                     <option value="" disabled selected>Select a side bet</option>
                     <option value="lucky">Lucky Ladies</option>
-					<option value="poker">21+3</option>
-					<option value="pairs">Perfect Pairs</option>
-					
+                    <option value="poker">21+3</option>
+                    <option value="pairs">Perfect Pairs</option>
                 </select>
             </div>
             <div class="form-group">
@@ -44,7 +75,7 @@
                 <input type="text" id="sideBetValue" placeholder="Enter side bet amount"><br>
             </div>
             <button id="sideBetReady">Submit Side Bet</button>
-			<p id="sideMessage"></p>
+            <p id="sideMessage"></p>
         </div>
 
         <p>Balance</p>

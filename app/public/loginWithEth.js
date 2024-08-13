@@ -27,11 +27,7 @@ async function loginWithEth() {
     try {
       const accounts = await window.web3.eth.getAccounts();
       const account = accounts[0]; 
-      console.log(account);
-      window.localStorage.setItem('userETHaddress', account);
-      console.log(`Logged in with ETH address: ${account}`);
       
-
       const response = await fetch('/save-nickname', {
         method: 'POST',
         headers: {
@@ -47,9 +43,10 @@ async function loginWithEth() {
         console.error('Error saving nickname:', result.error);
       }
     } catch (error) {
-      console.error('Error fetching accounts:', error);
+      console.error('Error fetching accounts or saving nickname:', error);
     }
   } else {
     alert('No ETH browser extension detected.');
   }
 }
+
