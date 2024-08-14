@@ -1,117 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Chat Lobby</title>
-		<style>
-			#chatBox {
-				width: 100%;
-				height: 100px;
-				border: 1px solid black;
-				overflow-y: scroll;
-			}
-			.message {
-				margin: 5px 5px;
-			}
-			#chatInterface {
-				display: none;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="lobbyInterface">
-			<input type="text" id="lobbyCodeInput" placeholder="Enter lobby code" />
-			<button id="lobbyConnectButton">Connect to Lobby</button>
-		</div>
-		<div id="chatInterface">
-			<div id="lobbyInfo">
-				<span id="lobbyCodeDisplay"></span>
-				<button id="exitLobbyButton">Exit Lobby</button>
-			</div>
-			<div id="chatBox"></div>
-			<input type="text" id="messageInput" placeholder="Enter a message" />
-			<button id="sendMessageButton">Send</button>
-		</div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Lobby</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        #chatBox {
+            width: 100%;
+            height: 100px;
+            border: 1px solid black;
+            overflow-y: scroll;
+        }
+        .message {
+            margin: 5px 5px;
+        }
+        #chatInterface {
+            display: none;
+        }
+        .container {
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="game.html">Game</a>
+        <a href="websocket.html">WebSocket</a>
+        <a href="chatlobby.html">Chat Lobby</a>
+    </nav>
 
-		<script>
-			let ws;
-			const lobbyInterface = document.getElementById("lobbyInterface");
-			const lobbyCodeInput = document.getElementById("lobbyCodeInput");
-			const lobbyConnectButton = document.getElementById("lobbyConnectButton");
-			const chatInterface = document.getElementById("chatInterface");
-			const chatBox = document.getElementById("chatBox");
-			const messageInput = document.getElementById("messageInput");
-			const sendMessageButton = document.getElementById("sendMessageButton");
-			const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
-			const exitLobbyButton = document.getElementById("exitLobbyButton");
+    <div class="container">
+        <div id="lobbyInterface">
+            <input type="text" id="lobbyCodeInput" placeholder="Enter lobby code" />
+            <button id="lobbyConnectButton">Connect to Lobby</button>
+        </div>
+        <div id="chatInterface">
+            <div id="lobbyInfo">
+                <span id="lobbyCodeDisplay"></span>
+                <button id="exitLobbyButton">Exit Lobby</button>
+            </div>
+            <div id="chatBox"></div>
+            <input type="text" id="messageInput" placeholder="Enter a message" />
+            <button id="sendMessageButton">Send</button>
+        </div>
+    </div>
 
-			lobbyConnectButton.addEventListener("click", () => {
-				const lobbyCode = lobbyCodeInput.value.trim();
+    <script>
+        let ws;
+        const lobbyInterface = document.getElementById("lobbyInterface");
+        const lobbyCodeInput = document.getElementById("lobbyCodeInput");
+        const lobbyConnectButton = document.getElementById("lobbyConnectButton");
+        const chatInterface = document.getElementById("chatInterface");
+        const chatBox = document.getElementById("chatBox");
+        const messageInput = document.getElementById("messageInput");
+        const sendMessageButton = document.getElementById("sendMessageButton");
+        const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
+        const exitLobbyButton = document.getElementById("exitLobbyButton");
 
-				if (lobbyCode === "") {
-					alert("Please enter a valid lobby code.");
-					return;
-				}
+        lobbyConnectButton.addEventListener("click", () => {
+            const lobbyCode = lobbyCodeInput.value.trim();
 
-				if (ws) {
-					ws.close();
-				}
+            if (lobbyCode === "") {
+                alert("Please enter a valid lobby code.");
+                return;
+            }
 
-				ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
+            if (ws) {
+                ws.close();
+            }
 
-				ws.onopen = () => {
-					const dateTime = new Date();
+            ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
 
-					lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
-					lobbyInterface.style.display = "none";
-					chatInterface.style.display = "block";
-					// later should display user's "name"
-					ws.send(`@${dateTime.toLocaleString()}: A user has entered the lobby.`);
-				};
+            ws.onopen = () => {
+                const dateTime = new Date();
 
-				ws.onmessage = (event) => {
-					const message = document.createElement("div");
-					const dateTime = new Date();
+                lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
+                lobbyInterface.style.display = "none";
+                chatInterface.style.display = "block";
+                ws.send(`@${dateTime.toLocaleString()}: A user has entered the lobby.`);
+            };
 
-					message.className = "message";
-					message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
+            ws.onmessage = (event) => {
+                const message = document.createElement("div");
+                const dateTime = new Date();
 
-					chatBox.appendChild(message);
-					chatBox.scrollTop = chatBox.scrollHeight;
-				};
+                message.className = "message";
+                message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
 
-				ws.onclose = () => {
-					chatBox.textContent = "";
-					chatInterface.style.display = "none";
-					lobbyInterface.style.display = "block";
-				};
-			});
+                chatBox.appendChild(message);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            };
 
-			sendMessageButton.addEventListener("click", () => {
-				const message = messageInput.value;
+            ws.onclose = () => {
+                chatBox.textContent = "";
+                chatInterface.style.display = "none";
+                lobbyInterface.style.display = "block";
+            };
+        });
 
-				if (message.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
-					ws.send(message);
-					messageInput.value = "";
-				}
-			});
+        sendMessageButton.addEventListener("click", () => {
+            const message = messageInput.value;
 
-			messageInput.addEventListener("keypress", (event) => {
-				if (event.key === "Enter") {
-					sendMessageButton.click();
-				}
-			});
+            if (message.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(message);
+                messageInput.value = "";
+            }
+        });
 
-			exitLobbyButton.addEventListener("click", () => {
-				if (ws && ws.readyState === WebSocket.OPEN) {
-					const dateTime = new Date();
+        messageInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                sendMessageButton.click();
+            }
+        });
 
-					// later should display user's "name"
-					ws.send(`@${dateTime.toLocaleString()}: A user has exited the lobby.`);
-					ws.close();
-				}
-			});
-		</script>
-	</body>
+        exitLobbyButton.addEventListener("click", () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const dateTime = new Date();
+
+                ws.send(`@${dateTime.toLocaleString()}: A user has exited the lobby.`);
+                ws.close();
+            }
+        });
+    </script>
+</body>
 </html>
