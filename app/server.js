@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-let port = 8080;
+let port = 3000;
 let host;
 let databaseConfig;
 
