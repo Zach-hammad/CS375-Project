@@ -3,23 +3,68 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Chat Lobby</title>
-		<style>
-			#chatBox {
-				width: 100%;
-				height: 100px;
-				border: 1px solid black;
-				overflow-y: scroll;
-			}
-			.message {
-				margin: 5px 5px;
-			}
-			#chatInterface {
-				display: none;
-			}
-		</style>
+		<title>Document</title>
 	</head>
 	<body>
+<<<<<<< Updated upstream
+		<input type="text" id="messageInput" placeholder="Enter a message" />
+		<button id="send">Send Message</button>
+		<p id="response"></p>
+
+		<script>
+			const ws = new WebSocket("ws://localhost:3000/echo");
+
+			document.getElementById("send").addEventListener("click", () => {
+				const message = document.getElementById("messageInput").value;
+				ws.send(message);
+=======
+		<div class="container">
+			<p>Dealer's Cards</p>  
+			<p id="dealer"></p>
+			<p>Player's Cards</p>
+			<p id="player"></p>
+			<p id="message"></p>
+	
+			<div id="buttons">
+				<button id="hit">HIT</button>
+				<button id="stand">STAND</button>
+				<button id="double">DOUBLE DOWN</button>
+			</div>
+			<button id="split">SPLIT</button>
+			<button id="insurance">INSURANCE</button>
+	
+			<div id="betDisplay">
+				<div>
+				<label for="betValue">Bet Amount</label>
+				<input type="text" id="betValue" placeholder="Enter amount"><br>
+				<button id="betReady">BET</button>
+				</div>
+	
+				<div class="form-group">
+					<label for="sideBet">Select Side Bet:</label>
+					<select id="sideBet" name="sideBet" required>
+						<option value="" disabled selected>Select a side bet</option>
+						<option value="lucky">Lucky Ladies</option>
+						<option value="poker">21+3</option>
+						<option value="pairs">Perfect Pairs</option>
+						
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="betAmount">Enter Bet Amount:</label>
+					<input type="text" id="sideBetValue" placeholder="Enter side bet amount"><br>
+				</div>
+				<button id="sideBetReady">Submit Side Bet</button>
+				<p id="sideMessage"></p>
+			</div>
+	
+			<p>Balance</p>
+			<p id="balance"></p>
+
+			<button id ="ready">Ready</button>
+		</div>
+
+
 		<div id="lobbyInterface">
 			<input type="text" id="lobbyCodeInput" placeholder="Enter lobby code" />
 			<button id="lobbyConnectButton">Connect to Lobby</button>
@@ -45,6 +90,9 @@
 			const sendMessageButton = document.getElementById("sendMessageButton");
 			const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
 			const exitLobbyButton = document.getElementById("exitLobbyButton");
+			const readyButton = document.getElementById("ready");
+			
+			document.querySelector('.container').style.display = 'none';
 
 			lobbyConnectButton.addEventListener("click", () => {
 				const lobbyCode = lobbyCodeInput.value.trim();
@@ -61,6 +109,8 @@
 				ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
 
 				ws.onopen = () => {
+					document.querySelector('.container').style.display = '';
+					readyButton.style.display = "";
 					const dateTime = new Date();
 
 					lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
@@ -71,6 +121,21 @@
 				};
 
 				ws.onmessage = (event) => {
+					
+					console.log(event);
+					try {
+					const data = JSON.parse(event.data);
+					
+					if (data.type === 'update') {
+						// player ready
+						console.log("player is ready");
+					} else if (data.type === 'hand') {
+						console.log("somebody had a turn");
+						//update visuals for hands
+					} else if (data.type === 'error') {
+						console.error(data.message);
+					}
+				} catch (error) {
 					const message = document.createElement("div");
 					const dateTime = new Date();
 
@@ -79,6 +144,7 @@
 
 					chatBox.appendChild(message);
 					chatBox.scrollTop = chatBox.scrollHeight;
+				}
 				};
 
 				ws.onclose = () => {
@@ -86,17 +152,22 @@
 					chatInterface.style.display = "none";
 					lobbyInterface.style.display = "block";
 				};
+>>>>>>> Stashed changes
 			});
 
-			sendMessageButton.addEventListener("click", () => {
-				const message = messageInput.value;
+			ws.onopen = () => {
+				console.log("Connected to WebSocket server");
+			};
 
-				if (message.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
-					ws.send(message);
-					messageInput.value = "";
-				}
-			});
+			ws.onmessage = (event) => {
+				document.getElementById("response").textContent = `${event.data}`;
+			};
 
+<<<<<<< Updated upstream
+			ws.onclose = () => {
+				console.log("Disconnected from WebSocket server");
+			};
+=======
 			messageInput.addEventListener("keypress", (event) => {
 				if (event.key === "Enter") {
 					sendMessageButton.click();
@@ -112,6 +183,26 @@
 					ws.close();
 				}
 			});
+
+			readyButton.addEventListener("click", () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = JSON.stringify({
+                    type: "ready",
+                    data: {
+                        playerName: "me",
+                        status: "ready"
+                    }
+                });
+                ws.send(message);
+            }
+			readyButton.style.display = "none";
+        });
+		</script>
+
+		<script src="game.js">
+
+
+>>>>>>> Stashed changes
 		</script>
 	</body>
 </html>
