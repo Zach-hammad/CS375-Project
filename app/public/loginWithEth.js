@@ -77,19 +77,24 @@ async function loginWithEth() {
 }
 
 async function sendTransaction() {
-  console.log("Send Transaction function called");
-
   if (window.ethereum) {
       try {
           const accounts = await window.web3.eth.getAccounts();
-          const account = accounts[0]; 
+          const account = accounts[0];
 
-          console.log("Account for transaction:", account);
+          if (!account) {
+              console.error('No accounts found.');
+              return;
+          }
+
+          // Set a lower gas price to reduce the fee
+          const gasPrice = window.web3.utils.toWei('5', 'gwei'); // Lowered gas price to 5 gwei
 
           const transactionParameters = {
               to: '0x205cb324f5fd910B11f92c19aD0C04803Fb24ddB', // Replace with the recipient address
-              value: window.web3.utils.toHex(window.web3.utils.toWei('0.095', 'ether')), // Amount in wei
-              gas: '21000', // Gas limit
+              value: window.web3.utils.toHex(window.web3.utils.toWei('0.05', 'ether')), // Send a smaller amount of SepoliaETH
+              gas: '21000', // Standard gas limit for a simple transfer
+              gasPrice: gasPrice, // Use the lowered gas price
           };
 
           const txHash = await window.ethereum.request({
@@ -102,10 +107,10 @@ async function sendTransaction() {
 
           console.log('Transaction hash:', txHash);
       } catch (error) {
-          console.error('Error sending transaction:', error);
+          console.error('Error sending transaction:', error.message);
+          console.error('Stack trace:', error.stack);
       }
   } else {
       alert('No ETH browser extension detected.');
-      console.error("No ETH browser extension detected in sendTransaction");
   }
 }
