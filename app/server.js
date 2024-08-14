@@ -1,6 +1,13 @@
 let express = require("express");
 let { Pool } = require("pg");
 
+<<<<<<< Updated upstream
+=======
+let port = 3000;
+let host;
+let databaseConfig;
+
+>>>>>>> Stashed changes
 // make this script's dir the cwd
 // b/c npm run start doesn't cd into src/ to run this
 // and if we aren't in its cwd, all relative paths will break
