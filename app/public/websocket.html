@@ -80,7 +80,7 @@
 					message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
 
 					chatBox.appendChild(message);
-					chatBox.scrollTop = chat - box.scrollHeight;
+					chatBox.scrollTop = chatBox.scrollHeight;
 				};
 
 				ws.onclose = () => {
@@ -103,10 +103,21 @@
 
 				if (lobbyCode === "") {
 					alert("Please enter a valid lobby code.");
+
 					return;
 				}
 
-				connect(lobbyCode);
+				fetch(`/check/${lobbyCode}`)
+					.then((response) => {
+						if (response.ok) {
+							connect(lobbyCode);
+						} else {
+							throw new Error("Please enter a valid lobby code.");
+						}
+					})
+					.catch((error) => {
+						alert(error.message);
+					});
 			});
 
 			sendMessageButton.addEventListener("click", () => {

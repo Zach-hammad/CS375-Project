@@ -18,6 +18,12 @@ module.exports = (app) => {
 		res.json({ lobbyCode });
 	});
 
+	app.get("/check/:lobbyCode", (req, res) => {
+		const lobbyCode = req.params.lobbyCode;
+
+		lobbies[lobbyCode] ? res.sendStatus(200) : res.sendStatus(404);
+	});
+
 	app.ws("/:lobbyCode", (ws, req) => {
 		const dateTime = new Date();
 		const lobbyCode = req.params.lobbyCode;
