@@ -10,6 +10,7 @@ let split = document.getElementById("split");
 let insurance = document.getElementById("insurance");
 let betReady = document.getElementById("betReady");
 let sideBetReady = document.getElementById("sideBetReady");
+let ready = document.getElementById("ready");
 
 // message fields
 let message = document.getElementById("message");
@@ -31,6 +32,7 @@ function initPlayer(name, balance){
     this.handsDone = 0;
     this.insurance = false;
     this.bet = 0;
+    this.betWon = 0;
     this.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
     this.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
 }
@@ -200,18 +202,19 @@ function newHand(player,cards){
 ////////// Payout //////////
 
 function payout(player,dealer){
+    let balance = 0;
     // check if dealer's second card is a face card and player has insurance
     if (dealer.cards.length != 0){
         if (((dealer.cards[1][1] === "JACK") || (dealer.cards[1][1] === "QUEEN") || (dealer.cards[1][1] === "KING")) && (player.insurance)){
             // player original bet + 0.5 bet -> 2:1 bet is * 3
-            player.balance += (player.bet * 3);
+            balance += (player.bet * 3);
             console.log(JSON.stringify("insurance"));
     }}
 
     // check side bets
     for ([betVal, value] of Object.entries(player.sideBets)){
         if (!((player.sideWon[betVal] * value) === 0)) console.log(JSON.stringify("bet won"));
-        player.balance += (player.sideWon[betVal] * value);
+        balance += (player.sideWon[betVal] * value);
     }
 
     //check each hand for a win
@@ -220,36 +223,38 @@ function payout(player,dealer){
             console.log(player.hands[i]);
             //blackjack
             if (player.hands[i].blackjack){
-                player.balance += (2.5 * player.bet);
+               balance += (2.5 * player.bet);
                 console.log(JSON.stringify("blackjack"));
             }
             //win
             else if (player.hands[i].win === 1) {
                 if(player.hands[i].doubleDown){
-                    player.balance += (4 * player.bet);
+                    balance += (4 * player.bet);
                     console.log(JSON.stringify("win double"));
                 }
                 else {
-                    player.balance += (2 * player.bet);
+                    balance += (2 * player.bet);
                     console.log(JSON.stringify("win"));
                 }
             }
             //draw
             else if (player.hands[i].win === 2){
                 if(player.hands[i].doubleDown){
-                    player.balance += (2 * player.bet);
+                    balance += (2 * player.bet);
                     console.log(JSON.stringify("draw double"));
                 }
                 else {
-                    player.balance += (1 * player.bet);
+                    balance += (1 * player.bet);
                     console.log(JSON.stringify("draw"));
                 }
             }
             //loss
             else console.log(JSON.stringify("lose"));
     }}
-
-    return player.balance;
+    player.balance += balance;
+    player.betWon = balance;
+    console.log(balance, player.balance, player.betWon);
+    return;
 }
 
 ////////// Reset //////////
@@ -271,6 +276,7 @@ function reset(player){
     player.sideBets = {"lucky": 0, "pairs": 0, "poker":0};
     player.sideWon = {"lucky": 0, "pairs": 0, "poker":0};
     player.bet = 0;
+    player.betWon = 0;
 
     return;
 }
@@ -289,15 +295,15 @@ function hitFunction(player, card){
     displayPlayer.textContent = hand.cards;
 
     //no more double down
-    if(hand.cards.length > 2){
-        double.style.display = "none";
-    }
+    //if(hand.cards.length > 2){
+      //  double.style.display = "none";
+    //}
 
     //add code to take off insurance after first turn
 
     //check if bust or blackjack
     if (value >= 21){
-        //endTurn (player);
+        endTurn (player);
     }
 
     //check for split
@@ -310,13 +316,7 @@ function hitFunction(player, card){
     return;
 } 
 
-/*
-hit.addEventListener("click", () => {
-    hitFunction(player);
-    sendHand ();
-})
-*/
-hitButton.addEventListener('click', async () => {
+hit.addEventListener('click', async () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
         let card  = await askForCard();
         console.log(card);
@@ -372,17 +372,17 @@ async function endTurn(player){
     //else end the turn, check for a win, and reset hand
     else {
         if (ws && ws.readyState === WebSocket.OPEN) {
+            // send the finished hand first, then wait for dealer
             let dealer = await askForDealer();
             console.log(dealer);
             for (let i = 0; i < player.hands.length; i++){
                 checkWin(player.hands[i], dealer);
             }
-            let val  = payout(player, dealer);
-            console.log(val);
+            payout(player, dealer);
+            sendWin(player);
+            console.log(JSON.stringify(player));
             reset(player);
-            console.log(player);
         }
-
     }
     //sendHand ();
 }
@@ -391,14 +391,13 @@ async function endTurn(player){
 
 stand.addEventListener("click", () => {
     endTurn(player);
-    //sendHand ();
 })
 
 ////////// Bet Functions //////////
 
 betReady.addEventListener("click", () => {
     let betVal = document.getElementById("betValue"); //normal bet
-    player.bet = betVal.value;
+    player.bet = parseInt(betVal.value);
     player.balance -= player.bet;
     return;
 })
@@ -406,7 +405,8 @@ betReady.addEventListener("click", () => {
 sideBetReady.addEventListener("click", () => {
     //check if side bet exists, and enter into object
     if (player.sideBets.hasOwnProperty(sideBet.value)){
-        player.sideBets[sideBet.value] = sideBetValue.value;
+        player.sideBets[sideBet.value] = parseInt(sideBetValue.value);
+        player.balance -= parseInt(sideBetValue.value);
     }
     sideMessage.textContent = "Side Bet " + sideBet.value + " confirmed for " + sideBetValue.value;
     player.balance -= sideBetValue.value;
@@ -415,14 +415,17 @@ sideBetReady.addEventListener("click", () => {
 
 ////////// Double Functions //////////
 
-double.addEventListener("click", () => {
-    //minus bet, hit, if turn not done, end turn
-    let hand = player.hands[player.handsDone];
-    player.balance -= player.bet;
-    hand.doubleDown = true;
-    hitFunction(player);
-    if (!hand.done) endTurn(player);
-    sendHand ();
+double.addEventListener("click", async () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        let card  = await askForCard();
+        //minus bet, hit, if turn not done, end turn
+        let hand = player.hands[player.handsDone];
+        player.balance -= player.bet;
+        sendBet(player, player.bet);
+        hand.doubleDown = true;
+        hitFunction(player, card);
+        if (!hand.done) endTurn(player);
+    }
     return;
 })
 
@@ -453,10 +456,12 @@ split.addEventListener("click", ()=>{
 
 insurance.addEventListener("click", ()=>{
     player.insurance = true;
-    player.balance -= (player.bet / 2);
+    let val = player.bet / 2;
+    player.balance -= val;
+    sendBet(player, val);
     insurance.style.display = "none";
-    sendHand ();
 })
+
 function sendHand (){
     if (ws && ws.readyState === WebSocket.OPEN) {
         const message = JSON.stringify({
@@ -467,17 +472,27 @@ function sendHand (){
     }
 }
 
-readyButton.addEventListener('click', () => {
+ready.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
+        let totalBet= 0;
+        for ([betVal, value] of Object.entries(player.sideBets)){
+            totalBet += parseInt(value); // for local running
+            //balance += value; // for website
+        }
+        totalBet += player.bet;
         const message = JSON.stringify({type: 'ready', data: {playerName: 'me', status: "ready"}});
         ws.send(message);
+        sendBet(player, totalBet);
     }
 });
 
-function onGoingHand(player, hand){
-    if(player);
+function sendBet(player, bet){
+    const message = JSON.stringify({type: 'bet', data: {playerName: 'me', bet: bet}});
+    ws.send(message);
+
 }
 
-////////// Setup //////////
-
-reset(player);
+function sendWin(player){
+    const message = JSON.stringify({type: 'win', data: {playerName: 'me', betWon: player.betWon}});
+    ws.send(message);
+}

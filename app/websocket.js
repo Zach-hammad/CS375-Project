@@ -64,9 +64,8 @@ module.exports = (app) => {
 					parsedMessage = { type: 'text', data: message };
 				}
 				
-				// add handlers for bet incoming
 				if (parsedMessage.type === 'ready') {
-					const { playerName, status } = parsedMessage.data;
+					const { playerName, status} = parsedMessage.data;
 					let ready = true;
 					players[playerName].ready = status;
 					//checks if all players are ready
@@ -100,6 +99,18 @@ module.exports = (app) => {
 				} else if (parsedMessage.type === 'card') {
 					let card = deck.pop();
 					broadcastMessage(JSON.stringify({ type: 'card', message: card}));
+				} else if (parsedMessage.type === 'bet') {
+					const { playerName, bet} = parsedMessage.data;
+					players[playerName].balance -= bet;
+					players[playerName].bet += bet;
+					console.log(parsedMessage.data);
+					console.log(players[playerName]);
+				} else if (parsedMessage.type === 'win') {
+					const { playerName, betWon } = parsedMessage.data;
+					players[playerName].balance += betWon;
+					players[playerName].win += betWon;
+					console.log(parsedMessage.data);
+					console.log(players[playerName]);
 				} else if (parsedMessage.type === 'hand') {
 					const { playerName, hand } = parsedMessage.data;
 					console.log(hand);
@@ -117,7 +128,8 @@ module.exports = (app) => {
 						broadcastMessage(JSON.stringify({ type: 'done', message: dealer}));
 						lobbies[lobbyCode].game["dealer"] = new blackjack.initDealer(deck);
 						Object.keys(players).forEach(player => {
-						players[player] = blackjack.initPlayer("me", 500);
+						curBalance = players[player].balance;
+						players[player] = blackjack.initPlayer("me", curBalance);
 					  });
 
 					}

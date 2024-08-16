@@ -103,7 +103,6 @@ function endDealer(dealer, deck){
     }
     //check for dealer blackjack
     if (dealer.cardValue === 21) dealer.blackjack = true;
-    console.log(JSON.stringify(dealer));
     return;
 }
 

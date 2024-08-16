@@ -8,12 +8,6 @@ const messageInput = document.getElementById("messageInput");
 const sendMessageButton = document.getElementById("sendMessageButton");
 const lobbyCodeDisplay = document.getElementById("lobbyCodeDisplay");
 const exitLobbyButton = document.getElementById("exitLobbyButton");
-const readyButton = document.getElementById("ready");
-
-const hitButton = document.getElementById("hit");
-const standButton = document.getElementById("stand");
-const splitButton = document.getElementById("split");
-const doubleButton = document.getElementById("double");
 
 document.querySelector('.container').style.display = 'none';
 
@@ -35,6 +29,7 @@ lobbyConnectButton.addEventListener("click", () => {
     }
 
     ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
+    //ws = new WebSocket(`wss://csblackjack.fly.dev/${lobbyCode}`);
 
     ws.onopen = () => {
         document.querySelector('.container').style.display = '';
@@ -65,6 +60,7 @@ lobbyConnectButton.addEventListener("click", () => {
                         console.log(player, data.message.players[p].cards[0]);
                         newHand(player, data.message.players[p].cards[0]);
                         checkBets(player,data.message.dealer);
+                        // check for split / insurance
                     }           
                   });
             } else if (data.type === 'done') {
@@ -134,15 +130,5 @@ exitLobbyButton.addEventListener("click", () => {
         ws.send(`@${dateTime.toLocaleString()}: A user has exited the lobby.`);
         ws.close();
     }
-});
-
-standButton.addEventListener("click", () => {
-
-});
-splitButton.addEventListener("click", () => {
-
-});
-doubleButton.addEventListener("click", () => {
-
 });
 
