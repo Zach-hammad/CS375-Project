@@ -1,71 +1,101 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Demo</title>
-		<style>
-			input,
-			button {
-				display: block;
-				margin: 1rem 0;
-			}
-		</style>
-	</head>
-	<body>
-		<p>Enter some data:</p>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+        }
+        nav a {
+            color: white;
+            margin-right: 1rem;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        input,
+        button {
+            display: block;
+            margin: 1rem 0;
+        }
+        #content {
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="game.html">Game</a>
+        <a href="websocket.html">WebSocket</a>
+    </nav>
 
-		<input type="text" id="datum" />
+    <div id="content">
+        <p>Enter some data:</p>
 
-		<button id="submit">Submit</button>
+        <input type="text" id="datum" />
 
-		<p>All data:</p>
+        <button id="submit">Submit</button>
 
-		<div id="data"></div>
+        <p>All data:</p>
 
-		<script>
-			let input = document.getElementById("datum");
-			let button = document.getElementById("submit");
-			let div = document.getElementById("data");
+        <div id="data"></div>
+    </div>
 
-			function populate() {
-				div.textContent = "";
-				fetch("/data")
-					.then((response) => response.json())
-					.then((body) => {
-						let data = body.data;
-						if (data.length === 0) {
-							div.textContent = "No data yet";
-						} else {
-							for (let obj of data) {
-								let datumDiv = document.createElement("div");
-								datumDiv.textContent = obj.datum;
-								div.append(datumDiv);
-							}
-						}
-					});
-			}
+    <script>
+        let input = document.getElementById("datum");
+        let button = document.getElementById("submit");
+        let div = document.getElementById("data");
 
-			button.addEventListener("click", () => {
-				fetch("/datum", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ datum: input.value }),
-				})
-					.then((response) => {
-						return response.json();
-					})
-					.then((body) => {
-						populate();
-					})
-					.catch((error) => {
-						console.log(error);
-					});
-			});
+        function populate() {
+            div.textContent = "";
+            fetch("/data")
+                .then((response) => response.json())
+                .then((body) => {
+                    let data = body.data;
+                    if (data.length === 0) {
+                        div.textContent = "No data yet";
+                    } else {
+                        for (let obj of data) {
+                            let datumDiv = document.createElement("div");
+                            datumDiv.textContent = obj.datum;
+                            div.append(datumDiv);
+                        }
+                    }
+                });
+        }
 
-			populate();
-		</script>
-	</body>
+        button.addEventListener("click", () => {
+            fetch("/datum", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ datum: input.value }),
+            })
+                .then((response) => {
+                    return response.json();
+                })
+                .then((body) => {
+                    populate();
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        });
+
+        populate();
+    </script>
+</body>
 </html>

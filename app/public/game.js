@@ -54,60 +54,6 @@ function initHand(){
 }
 
 
-////////// Create Deck //////////
-
-// Durstenfeld shuffle
-function randomizeDeck(deck) {
-    for (let i = deck.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let temp = deck[i];
-        deck[i] = deck[j];
-        deck[j] = temp;
-    }
-}
-function shuffle(numDecks){
-    let suits = ["HEART", "SPADE", "DIAMOND", "CLUB"];
-    let cards = ["ACE", "2", "3", "4", "5", "6", "7", "8", "9", "10", "JACK", "QUEEN", "KING"];
-    deck = [];
-    
-    for (let i = 0; i < numDecks; i++){
-        suits.forEach((suit) => {
-            cards.forEach((card) => {
-                deck.push([suit,card]);
-            })
-        });
-    }
-    randomizeDeck(deck);
-    return (deck);
-}
-
-function getCardValue(cards){
-    let cardValue = 0;
-    let aces = 0;
-    for (let i = 0; i < cards.length; i++){
-        if((cards[i][1] === "JACK") || (cards[i][1] === "QUEEN") || (cards[i][1] === "KING")){
-            cardValue += 10;
-        } else if (cards[i][1] === "ACE"){
-            cardValue += 11;
-            aces += 1;
-        } else {
-            cardValue += parseInt(cards[i][1]);
-        }
-    }
-
-    while (cardValue > 21 && aces > 0){
-        cardValue -= 10;
-        aces -= 1;
-    }
-    return cardValue;
-}
-
-function getCard(cards){
-    cards.push(deck.pop());
-    let value = getCardValue(cards);
-    return value;
-}
-
 ////////// Side Bets //////////
 
 /*
@@ -217,11 +163,6 @@ function newHand(player, dealer){
     //hand.cards = [["HEART", "QUEEN"], ["HEART", "QUEEN"]];
     hand.cardValue = getCardValue(hand.cards);
 
-    //start the dealer's hand
-    dealer.cards.push(deck.pop());
-    //dealer.cards = [["SPADE", "ACE"]];
-    dealer.cardValue = getCardValue(dealer.cards);
-
     //check which side bets were won
     checkBets(player,dealer);
 
@@ -245,6 +186,7 @@ function newHand(player, dealer){
 
     displayPlayer.textContent = hand.cards;
     displayDealer.textContent = dealer.cards;
+    sendHand ();
     return;
 }
 
@@ -299,6 +241,7 @@ function payout(player,dealer){
             //loss
             else console.log(JSON.stringify("lose"));
     }}
+    sendHand ();
 
     return;
 }
@@ -329,6 +272,7 @@ function reset(player,dealer){
     dealer.cards = [];
     dealer.cardValue = 0;
     dealer.blackjack = false;
+    sendHand ();
 
     return;
 }
@@ -363,11 +307,13 @@ function hitFunction(player){
     }
 
     console.log(JSON.stringify(player));
+    sendHand ();
     return;
 } 
 
 hit.addEventListener("click", () => {
     hitFunction(player);
+    sendHand ();
 })
 
 ////////// End Turn //////////
@@ -398,6 +344,7 @@ function checkWin (hand){
         hand.win = 0;
         message.textContent = "Lose";
     }
+    sendHand ();
     return;
 }
 
@@ -412,6 +359,7 @@ function endDealer(dealer){
     //check for dealer blackjack
     if (dealer.cardValue === 21) dealer.blackjack = true;
     console.log(JSON.stringify(dealer));
+    sendHand ();
     return;
 }
 
@@ -431,12 +379,14 @@ function endTurn(player){
         console.log(JSON.stringify(player));
         reset(player,dealer);
     }
+    sendHand ();
 }
 
 ////////// Stand Functions //////////
 
 stand.addEventListener("click", () => {
     endTurn(player);
+    sendHand ();
 })
 
 ////////// Bet Functions //////////
@@ -446,6 +396,7 @@ betReady.addEventListener("click", () => {
     player.bet = betVal.value;
     player.balance -= player.bet;
     newHand(player, dealer);
+    sendHand ();
     return;
 })
 
@@ -456,6 +407,7 @@ sideBetReady.addEventListener("click", () => {
     }
     sideMessage.textContent = "Side Bet " + sideBet.value + " confirmed for " + sideBetValue.value;
     player.balance -= sideBetValue.value;
+    sendHand ();
     return;
 })
 
@@ -468,6 +420,7 @@ double.addEventListener("click", () => {
     hand.doubleDown = true;
     hitFunction(player);
     if (!hand.done) endTurn(player);
+    sendHand ();
     return;
 })
 
@@ -490,6 +443,7 @@ split.addEventListener("click", ()=>{
     hitFunction(player);
 
     displayPlayer.textContent = first.cards;
+    sendHand ();
     return;
 })
 
@@ -499,12 +453,22 @@ insurance.addEventListener("click", ()=>{
     player.insurance = true;
     player.balance -= (player.bet / 2);
     insurance.style.display = "none";
+    sendHand ();
 })
+function sendHand (){
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        const message = JSON.stringify({
+            type: "hand",
+            data: player
+        });
+        ws.send(message);
+    }
+}
 
 ////////// Setup //////////
 
 let dealer = new initDealer();
-let player = new initPlayer("player", 500);
+let player = new initPlayer("me", 500);
 console.log(JSON.stringify(player));
 deck = shuffle(2);
 reset(player,dealer);

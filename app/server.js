@@ -5,8 +5,11 @@ app.use(express.static("app/public"));
 let expressWs = require("express-ws")(app);
 
 let { Pool } = require("pg");
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
 
-let port = 8080;
+let port = 3000;
 let host;
 let databaseConfig;
 
@@ -14,6 +17,8 @@ let databaseConfig;
 // b/c npm run start doesn't cd into src/ to run this
 // and if we aren't in its cwd, all relative paths will break
 process.chdir(__dirname);
+
+
 
 // fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
 if (process.env.NODE_ENV == "production") {
@@ -31,8 +36,16 @@ console.log(databaseConfig);
 // console.log(JSON.stringify(databaseConfig, null, 2));
 
 let pool = new Pool(databaseConfig);
+
 pool.connect().then(() => {
 	console.log("Connected to db");
+});
+
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.post("/datum", (req, res) => {
@@ -49,6 +62,34 @@ app.post("/datum", (req, res) => {
 			return res.status(500).send({});
 		});
 });
+app.post('/save-nickname', async (req, res) => {
+	const { ethAddress, nickname } = req.body;
+	try {
+	  const result = await pool.query(
+		'INSERT INTO users (eth_address, nickname) VALUES ($1, $2) ON CONFLICT (eth_address) DO UPDATE SET nickname = $2 RETURNING *',
+		[ethAddress, nickname]
+	  );
+	  res.json(result.rows[0]);
+	} catch (error) {
+	  console.error('Error saving nickname:', error);
+	  res.status(500).json({ error: 'Internal Server Error' });
+	}
+  });
+
+  app.get('/get-nickname/:ethAddress', async (req, res) => {
+	const { ethAddress } = req.params;
+	try {
+	  const result = await pool.query('SELECT nickname FROM users WHERE eth_address = $1', [ethAddress]);
+	  if (result.rows.length > 0) {
+		res.json(result.rows[0]);
+	  } else {
+		res.status(404).json({ error: 'Nickname not found' });
+	  }
+	} catch (error) {
+	  console.error('Error retrieving nickname:', error);
+	  res.status(500).json({ error: 'Internal Server Error' });
+	}
+  });
 
 app.get("/data", (req, res) => {
 	pool.query("SELECT * FROM foo")
