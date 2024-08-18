@@ -5,13 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login with Ethereum</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self';">
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script src="loginWithEth.js" defer></script>
 </head>
 <body>
-    <label for="nickname">Username:</label>
-    <input type="text" id="nickname" name="nickname">
-    <button id="loginButton">Login & Save ETH Address</button>
-    <div id="log"></div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="game.html">Game</a>
+        <a href="websocket.html">WebSocket</a>
+        <a href="blackjack.html">Blackjack</a>
+    </nav>
+
+    <div id="content">
+        <label for="nickname">Username:</label>
+        <input type="text" id="nickname" name="nickname">
+        <button id="loginButton">Login & Save ETH Address</button>
+        <div id="log"></div>
+        <button id="sendTransactionButton">Send Test Transaction</button>
+    </div>
 </body>
 </html>
