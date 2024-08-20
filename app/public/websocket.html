@@ -1,228 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Chat Lobby</title>
-		<style>
-			#chat-box {
-				width: 100%;
-				height: 100px;
-				border: 1px solid black;
-				overflow-y: scroll;
-			}
-			.message {
-				margin: 5px 5px;
-			}
-			#chat-container {
-				display: none;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<p>Dealer's Cards</p>
-			<p id="dealer"></p>
-			<p>Player's Cards</p>
-			<p id="player"></p>
-			<p id="message"></p>
 
-			<div id="buttons">
-				<button id="hit">HIT</button>
-				<button id="stand">STAND</button>
-				<button id="double">DOUBLE DOWN</button>
-			</div>
-			<button id="split">SPLIT</button>
-			<button id="insurance">INSURANCE</button>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+        #chatBox {
+            width: 100%;
+            height: 100px;
+            border: 1px solid black;
+            overflow-y: scroll;
+        }
+        .message {
+            margin: 5px 5px;
+        }
+        #chatInterface {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p>Dealer's Cards</p>
+        <p id="dealer"></p>
+        <p>Player's Cards</p>
+        <p id="player"></p>
+        <p id="message"></p>
 
-			<div id="betDisplay">
-				<div>
-					<label for="betValue">Bet Amount</label>
-					<input type="text" id="betValue" placeholder="Enter amount" /><br />
-					<button id="betReady">BET</button>
-				</div>
+        <div id="buttons">
+            <button id="hit">HIT</button>
+            <button id="stand">STAND</button>
+            <button id="double">DOUBLE DOWN</button>
+        </div>
+        <button id="split">SPLIT</button>
+        <button id="insurance">INSURANCE</button>
 
-				<div class="form-group">
-					<label for="sideBet">Select Side Bet:</label>
-					<select id="sideBet" name="sideBet" required>
-						<option value="" disabled selected>Select a side bet</option>
-						<option value="lucky">Lucky Ladies</option>
-						<option value="poker">21+3</option>
-						<option value="pairs">Perfect Pairs</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="betAmount">Enter Bet Amount:</label>
-					<input type="text" id="sideBetValue" placeholder="Enter side bet amount" /><br />
-				</div>
-				<button id="sideBetReady">Submit Side Bet</button>
-				<p id="sideMessage"></p>
-			</div>
+        <div id="betDisplay">
+            <div>
+                <label for="betValue">Bet Amount</label>
+                <input type="text" id="betValue" placeholder="Enter amount"><br>
+                <button id="betReady">BET</button>
+            </div>
 
-			<p>Balance</p>
-			<p id="balance"></p>
+            <div class="form-group">
+                <label for="sideBet">Select Side Bet:</label>
+                <select id="sideBet" name="sideBet" required>
+                    <option value="" disabled selected>Select a side bet</option>
+                    <option value="lucky">Lucky Ladies</option>
+                    <option value="poker">21+3</option>
+                    <option value="pairs">Perfect Pairs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="betAmount">Enter Bet Amount:</label>
+                <input type="text" id="sideBetValue" placeholder="Enter side bet amount"><br>
+            </div>
+            <button id="sideBetReady">Submit Side Bet</button>
+            <p id="sideMessage"></p>
+        </div>
 
-			<button id="ready">Ready</button>
-		</div>
+        <p>Balance</p>
+        <p id="balance"></p>
 
-		<div id="lobby-container">
-			<button id="create-lobby">Create lobby</button>
-			<div id="multiplayer-mode">
-				<input type="text" id="lobby-code-input" placeholder="Enter lobby code" />
-				<button id="join-lobby">Connect to Lobby</button>
-			</div>
-			<button id="singleplayer-mode">Singleplayer</button>
-		</div>
-		<div id="chat-container">
-			<div id="lobby-info">
-				<span id="lobby-code-display"></span>
-				<button id="exit-lobby">Exit Lobby</button>
-			</div>
-			<div id="chat-box"></div>
-			<input type="text" id="message-input" placeholder="Enter a message" />
-			<button id="send-message">Send</button>
-		</div>
+    </div>
 
-		<script>
-			let ws;
-			const lobbyContainer = document.getElementById("lobby-container");
-			const createLobbyButton = document.getElementById("create-lobby");
-
-			const lobbyCodeInput = document.getElementById("lobby-code-input");
-			const joinLobbyButton = document.getElementById("join-lobby");
-
-			const chatContainer = document.getElementById("chat-container");
-			const chatBox = document.getElementById("chat-box");
-			const messageInput = document.getElementById("message-input");
-			const sendMessageButton = document.getElementById("send-message");
-
-			const lobbyCodeDisplay = document.getElementById("lobby-code-display");
-			const exitLobby = document.getElementById("exit-lobby");
-
-			const readyButton = document.getElementById("ready");
-			document.querySelector(".container").style.display = "none";
-
-			const connect = (lobbyCode) => {
-				if (ws) {
-					ws.close();
-				}
-
-				ws = new WebSocket(`ws://localhost:8080/${lobbyCode}`);
-				// ws = new WebSocket(`wss://csblackjack.fly.dev/${lobbyCode}`);
-
-				ws.onopen = () => {
-					document.querySelector(".container").style.display = "";
-					const dateTime = new Date();
-
-					lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
-					lobbyContainer.style.display = "none";
-					chatContainer.style.display = "block";
-					// later should display user's "name"
-					ws.send(`@${dateTime.toLocaleString()}: A user has entered the lobby.`);
-				};
-
-				ws.onmessage = (event) => {
-					console.log(event);
-					try {
-						const data = JSON.parse(event.data);
-
-						if (data.type === "update") {
-							console.log("player is ready");
-						} else if (data.type === "hand") {
-							console.log("somebody had a turn");
-						} else if (data.type === "error") {
-							console.error(data.message);
-						}
-					} catch (error) {
-						const message = document.createElement("div");
-						const dateTime = new Date();
-
-						message.className = "message";
-						message.textContent = `@${dateTime.toLocaleString()}: ${event.data}`;
-
-						chatBox.appendChild(message);
-						chatBox.scrollTop = chatBox.scrollHeight;
-					}
-				};
-
-				ws.onclose = () => {
-					document.querySelector(".container").style.display = "none";
-					chatBox.textContent = "";
-					chatContainer.style.display = "none";
-					lobbyContainer.style.display = "block";
-				};
-			};
-
-			createLobbyButton.addEventListener("click", () => {
-				fetch("/create", { method: "POST" })
-					.then((response) => response.json())
-					.then((data) => {
-						connect(data.lobbyCode);
-					});
-			});
-
-			joinLobbyButton.addEventListener("click", () => {
-				const lobbyCode = lobbyCodeInput.value.trim();
-
-				if (lobbyCode === "") {
-					alert("Please enter a valid lobby code.");
-
-					return;
-				}
-
-				fetch(`/check/${lobbyCode}`)
-					.then((response) => {
-						if (response.ok) {
-							connect(lobbyCode);
-						} else {
-							throw new Error("Please enter a valid lobby code.");
-						}
-					})
-					.catch((error) => {
-						alert(error.message);
-					});
-			});
-
-			sendMessageButton.addEventListener("click", () => {
-				const message = messageInput.value;
-
-				if (message.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
-					ws.send(message);
-					messageInput.value = "";
-				}
-			});
-
-			messageInput.addEventListener("keypress", (event) => {
-				if (event.key === "Enter") {
-					sendMessageButton.click();
-				}
-			});
-
-			exitLobby.addEventListener("click", () => {
-				if (ws && ws.readyState === WebSocket.OPEN) {
-					const dateTime = new Date();
-
-					// later should display user's "name"
-					ws.send(`@${dateTime.toLocaleString()}: A user has exited the lobby.`);
-					ws.close();
-				}
-			});
-
-			readyButton.addEventListener("click", () => {
-				if (ws && ws.readyState === WebSocket.OPEN) {
-					const message = JSON.stringify({
-						type: "ready",
-						data: {
-							playerName: "me",
-							status: "ready",
-						},
-					});
-
-					ws.send(message);
-					readyButton.style.display = "none";
-				}
-			});
-		</script>
-		<script src="game.js"></script>
-	</body>
+    <div id="lobbyInterface">
+        <input type="text" id="lobbyCodeInput" placeholder="Enter lobby code" />
+        <button id="lobbyConnectButton">Connect to Lobby</button>
+    </div>
+    <div id="chatInterface">
+        <div id="lobbyInfo">
+            <span id="lobbyCodeDisplay"></span>
+            <button id="exitLobbyButton">Exit Lobby</button>
+        </div>
+        <div id="chatBox"></div>
+        <input type="text" id="messageInput" placeholder="Enter a message" />
+        <button id="sendMessageButton">Send</button>
+    </div>
+    <script src="ws.js"></script>
+    <script src="game.js"></script>
+    <script> let player = new initPlayer("me", 500);
+        reset(player);
+    </script>
+</body>
 </html>

@@ -10,25 +10,10 @@ function initPlayer(name, balance) {
     return {
         name: name,
         balance: balance,
-        done: false,
         ready: "no",
-        hands: [],
-        handsDone: 0,
-        insurance: false,
-        bet: 0,
-        sideBets: {"lucky": 0, "poker": 0, "pairs": 0},
-        sideWon: {"lucky": 0, "poker": 0, "pairs": 0}
-    };
-}
-
-function initHand() {
-    return {
         cards: [],
-        cardValue: 0,
-        done: false,
-        win: 0,
-        blackjack: false,
-        doubleDown: false
+        bet: 0,
+        win: 0
     };
 }
 
@@ -92,9 +77,35 @@ function dealerHand(dealer, deck){
     dealer.cards.push(deck.pop());
     //dealer.cards = [["SPADE", "ACE"]];
     dealer.cardValue = getCardValue(dealer.cards);
+
+    //check for insurance
+    if(dealer.cards[0][1] === "ACE"){
+        ; // do something
+    }
+
     return dealer;
 }
 
+
+function newHand(player, deck){
+    let cards = [[deck.pop(), deck.pop()]];
+    player.cards = cards;
+    return;
+}
+
+function endDealer(dealer, deck){
+    //if dealer value > 17, keep getting cards
+    while (dealer.cardValue < 17){
+        //ask for dealers
+        dealer.cards.push(deck.pop());
+        //dealer.cards.push(["HEART","KING"]);
+        dealer.cardValue = getCardValue(dealer.cards);
+    }
+    //check for dealer blackjack
+    if (dealer.cardValue === 21) dealer.blackjack = true;
+    return;
+}
+
 module.exports = {
-    getCard, getCardValue, randomizeDeck, shuffle, initDealer, initHand, initPlayer, Game, dealerHand
+    getCard, getCardValue, randomizeDeck, shuffle, initDealer, initPlayer, Game, dealerHand, newHand, endDealer
 };
