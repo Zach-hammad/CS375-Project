@@ -14,7 +14,6 @@ document.querySelector('.container').style.display = 'none';
 let responsePromise;
 let resolveResponse;
 
-let n = "me";
 
 lobbyConnectButton.addEventListener("click", () => {
     const lobbyCode = lobbyCodeInput.value.trim();
@@ -28,8 +27,8 @@ lobbyConnectButton.addEventListener("click", () => {
         ws.close();
     }
 
-    ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
-    //ws = new WebSocket(`wss://csblackjack.fly.dev/${lobbyCode}`);
+    //ws = new WebSocket(`ws://localhost:3000/${lobbyCode}`);
+    ws = new WebSocket(`wss://csblackjack.fly.dev/${lobbyCode}`);
 
     ws.onopen = () => {
         document.querySelector('.container').style.display = '';
@@ -89,17 +88,17 @@ lobbyConnectButton.addEventListener("click", () => {
     };
 });
 
-async function askForCard() {
+async function askForCard(player) {
     return new Promise((resolve) => {
         resolveResponse = resolve;
-        const message = JSON.stringify({type: 'card', data: {playerName: n}});
+        const message = JSON.stringify({type: 'card', data: {playerName: player.name}});
         ws.send(message);
     });
 }
-async function askForDealer() {
+async function askForDealer(player) {
     return new Promise((resolve) => {
         resolveResponse = resolve;
-        const message = JSON.stringify({type: 'done', data: {playerName: n, status : "done"}});
+        const message = JSON.stringify({type: 'done', data: {playerName: player.name, status : "done"}});
         ws.send(message);
     });
 }

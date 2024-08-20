@@ -24,8 +24,26 @@ let sideMessage = document.getElementById("sideMessage"); //confirm bet was plac
 
 let balance = document.getElementById("balance");
 
-function initPlayer(name, balance){
-    this.name = name;
+async function initPlayer(balance){
+    const ethAddress = window.localStorage.getItem('userETHaddress');
+
+    if (!ethAddress) {
+        console.error('No Ethereum address found in localStorage.');
+        return;
+    }
+
+    try {
+        // Fetch user data from the server
+        const response = await fetch(`/get-user?ethAddress=${ethAddress}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data.');
+        }
+        
+    const userData = await response.json();
+    this.name = userData.nickname;
+    } catch (error){
+        ;
+    }
     this.balance = balance;
     this.hands = [];
     this.handsDone = 0;
@@ -311,7 +329,7 @@ function hitFunction(player, card){
 
 hit.addEventListener('click', async () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-        let card  = await askForCard();
+        let card  = await askForCard(player);
         console.log(player.bet);
         console.log(card);
         hitFunction(player,card);
@@ -360,7 +378,7 @@ async function endTurn(player){
     //if not all hands are done, hit the next hand
     if (!(player.handsDone === player.hands.length)){
         if (ws && ws.readyState === WebSocket.OPEN) {
-            let card  = await askForCard();
+            let card  = await askForCard(player);
             console.log(card);
             hitFunction(player,card);
         }
@@ -369,7 +387,7 @@ async function endTurn(player){
     else {
         if (ws && ws.readyState === WebSocket.OPEN) {
             // send the finished hand first, then wait for dealer
-            let dealer = await askForDealer();
+            let dealer = await askForDealer(player);
             console.log(dealer);
             displayDealer.textContent = dealer.cards;
             for (let i = 0; i < player.hands.length; i++){
@@ -445,7 +463,7 @@ sideBetReady.addEventListener("click", () => {
 
 double.addEventListener("click", async () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-        let card  = await askForCard();
+        let card  = await askForCard(player);
         //minus bet, hit, if turn not done, end turn
         let hand = player.hands[player.handsDone];
         player.balance -= player.bet;
@@ -464,7 +482,7 @@ double.addEventListener("click", async () => {
 split.addEventListener("click", async ()=>{
     split.style.display = "none";
     if (ws && ws.readyState === WebSocket.OPEN) {
-        let card  = await askForCard();
+        let card  = await askForCard(player);
         //create a new hand with one card in each hand
         player.hands.push(new initHand());
         player.hands[player.hands.length - 1].cards.push(player.hands[player.handsDone].cards.pop());
@@ -508,7 +526,7 @@ function sendBet(player, bet){
 function sendWin(player){
     console.log("sssswin");
     if (ws && ws.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({type: 'win', data: {playerName: n, betWon: player.betWon}});
+        const message = JSON.stringify({type: 'win', data: {playerName: player.name, betWon: player.betWon}});
         ws.send(message);
     }
 }
@@ -520,7 +538,7 @@ function sendHand(player){
     }
     console.log(cards);
     if (ws && ws.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({type: "hand", data: {playerName: n, hand: cards}});
+        const message = JSON.stringify({type: "hand", data: {playerName: player.name, hand: cards}});
         ws.send(message);
     }
 }
@@ -528,7 +546,7 @@ function sendHand(player){
 async function sendReady(player){
     return new Promise((resolve) => {
         resolveResponse = resolve;
-        const message = JSON.stringify({type: 'ready', data: {playerName: n, status: "ready"}});
+        const message = JSON.stringify({type: 'ready', data: {playerName: player.name, status: "ready"}});
         ws.send(message);
     });
 }

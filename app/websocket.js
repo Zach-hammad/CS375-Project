@@ -23,6 +23,31 @@ async function handlePlayerTurns(players, deck) {
 	}
   }
 
+  async function initializePlayer() {
+    const ethAddress = window.localStorage.getItem('userETHaddress');
+
+    if (!ethAddress) {
+        console.error('No Ethereum address found in localStorage.');
+        return;
+    }
+
+    try {
+        // Fetch user data from the server
+        const response = await fetch(`/get-user?ethAddress=${ethAddress}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data.');
+        }
+        
+        const userData = await response.json();
+        
+        // Initialize the player with the fetched data
+        player = new initPlayer(userData.nickname, userData.balance);
+        console.log('Player initialized:', player);
+    } catch (error) {
+        console.error('Error initializing player:', error);
+    }
+}
+
 module.exports = (app) => {
 	const lobbies = {};
 
@@ -52,15 +77,18 @@ module.exports = (app) => {
 	app.ws("/:lobbyCode", (ws, req) => {
 		const dateTime = new Date();
 		const lobbyCode = req.params.lobbyCode;
+		const ethAddress = window.localStorage.getItem('userEthAddress');
+		ws.send(JSON.stringify({data: {ethAddress}, type: "joinLobby"}));
 
+		console.log(players);
 		if (lobbyCode) {
 			if (!lobbies[lobbyCode]) {
 				lobbies[lobbyCode] = [];
-				lobbies[lobbyCode].game = {dealer: blackjack.initDealer(), players: {"me": blackjack.initPlayer("me", 500)}, deck: blackjack.shuffle(1)};
+				lobbies[lobbyCode].game = {dealer: blackjack.initDealer(), deck: blackjack.shuffle(6)};
 			}
-			else{
+			else {
 				// call function with users own information
-				lobbies[lobbyCode].game.players.push({"you ": blackjack.initPlayer("you", 500)});
+				lobbies[lobbyCode].game.players.push({"you": blackjack.initPlayer("you", 500)});
 			}
 
 			lobbies[lobbyCode].push(ws);
@@ -79,6 +107,11 @@ module.exports = (app) => {
 			let players = lobbies[lobbyCode].game["players"];
 			let deck = lobbies[lobbyCode].game.deck;
 			let dealer = lobbies[lobbyCode].game["dealer"];
+
+			if(deck.length < 52){
+				deck = blackjack.shuffle(6);
+			}
+
 			try {
 				let parsedMessage;
 				try {
@@ -136,7 +169,6 @@ module.exports = (app) => {
 					console.log(players[playerName]);
 				} else if (parsedMessage.type === 'hand') {
 					const { playerName, hand } = parsedMessage.data;
-					console.log(hand + ' 116');
 					players[playerName].cards = hand;
 				}
 				else if (parsedMessage.type === 'done') {
@@ -146,6 +178,7 @@ module.exports = (app) => {
 					Object.keys(players).forEach(player => {
 						if (players[player].done !== "done") done = false;
 					  });
+					  console.log(players[playerName]);
 					if(done){
 						blackjack.endDealer(dealer, deck);
 						broadcastMessage(JSON.stringify({ type: 'done', message: dealer}));
