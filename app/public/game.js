@@ -24,7 +24,7 @@ let sideMessage = document.getElementById("sideMessage"); //confirm bet was plac
 
 let balance = document.getElementById("balance");
 
-async function initPlayer(balance){
+async function initPlayer(balance) {
     const ethAddress = window.localStorage.getItem('userETHaddress');
 
     if (!ethAddress) {
@@ -33,25 +33,29 @@ async function initPlayer(balance){
     }
 
     try {
-        // Fetch user data from the server
-        const response = await fetch(`/get-user?ethAddress=${ethAddress}`);
+        // Fetch user nickname from the server
+        const response = await fetch(`/get-nickname/${ethAddress}`);
         if (!response.ok) {
             throw new Error('Failed to fetch user data.');
         }
         
-    const userData = await response.json();
-    this.name = userData.nickname;
-    } catch (error){
-        ;
+        const userData = await response.json();
+        this.name = userData.nickname; // Set the nickname as the player's name
+        console.log(userData.nickname);
+    } catch (error) {
+        console.error('Error initializing player:', error);
+        return;
     }
+    console.log(this.name);
+    // Initialize other player properties
     this.balance = balance;
     this.hands = [];
     this.handsDone = 0;
     this.insurance = false;
     this.bet = 0;
     this.betWon = 0;
-    this.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
-    this.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
+    this.sideBets = { "lucky": 0, "poker": 0, "pairs": 0 };
+    this.sideWon = { "lucky": 0, "poker": 0, "pairs": 0 };
 }
 
 function initHand(){
@@ -517,7 +521,7 @@ insurance.addEventListener("click", ()=>{
 
 function sendBet(player, bet){
     if (ws && ws.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({type: 'bet', data: {playerName: n, bet: bet}});
+        const message = JSON.stringify({type: 'bet', data: {playerName: player.name, bet: bet}});
         ws.send(message);
     }
 

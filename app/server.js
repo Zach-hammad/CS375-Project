@@ -41,27 +41,6 @@ pool.connect().then(() => {
 	console.log("Connected to db");
 });
 
-let players = {};
-app.ws("/lobby", (ws,req) => {
-	ws.on("message", async (message) =>{
-		const parsedMessage = JSON.parse(message);
-		if (parsedMessage.type === "joinLobby"){
-			const {ethAddress} = parsedMessage.data;
-			try {
-				const result = await pool.query('SELECT nickname FROM users WHERE eth_address = $1', [ethAddress]);
-				if (result.rows.length > 0) {
-					players[ethAddress] = result.rows[0];
-				  res.json(result.rows[0]);
-				} else {
-				  res.status(404).json({ error: 'Nickname not found' });
-				}
-			  } catch (error) {
-				console.error('Error retrieving nickname:', error);
-				res.status(500).json({ error: 'Internal Server Error' });
-			  }
-		}
-	})
-});
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -122,6 +101,29 @@ app.get("/data", (req, res) => {
 			console.log(error);
 			return res.status(500).send({ data: [] });
 		});
+});
+
+let players = {};
+app.ws("/websocket.html", (ws,req) => {
+	ws.on("message", async (message) =>{
+		const parsedMessage = JSON.parse(message);
+		console.log(parsedMessage);
+		if (parsedMessage.type === "joinLobby"){
+			const {ethAddress} = parsedMessage.data;
+			try {
+				const result = await pool.query('SELECT nickname FROM users WHERE eth_address = $1', [ethAddress]);
+				if (result.rows.length > 0) {
+					players[ethAddress] = result.rows[0];
+				  res.json(result.rows[0]);
+				} else {
+				  res.status(404).json({ error: 'Nickname not found' });
+				}
+			  } catch (error) {
+				console.error('Error retrieving nickname:', error);
+				res.status(500).json({ error: 'Internal Server Error' });
+			  }
+		}
+	})
 });
 
 require("./websocket")(app);

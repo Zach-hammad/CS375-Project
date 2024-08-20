@@ -77,7 +77,7 @@ module.exports = (app) => {
 	app.ws("/:lobbyCode", (ws, req) => {
 		const dateTime = new Date();
 		const lobbyCode = req.params.lobbyCode;
-		const ethAddress = window.localStorage.getItem('userEthAddress');
+		const ethAddress = window.localStorage.getItem('userETHAddress');
 		ws.send(JSON.stringify({data: {ethAddress}, type: "joinLobby"}));
 
 		console.log(players);
@@ -86,10 +86,9 @@ module.exports = (app) => {
 				lobbies[lobbyCode] = [];
 				lobbies[lobbyCode].game = {dealer: blackjack.initDealer(), deck: blackjack.shuffle(6)};
 			}
-			else {
 				// call function with users own information
 				lobbies[lobbyCode].game.players.push({"you": blackjack.initPlayer("you", 500)});
-			}
+
 
 			lobbies[lobbyCode].push(ws);
 			console.log(`@${dateTime.toLocaleString()}: New client connected to lobby <${lobbyCode}>. Total clients in this lobby: ${lobbies[lobbyCode].length}`);
