@@ -62,7 +62,6 @@
         <p>Balance</p>
         <p id="balance"></p>
 
-        <button id="ready">Ready</button>
     </div>
 
     <div id="lobbyInterface">
@@ -80,6 +79,8 @@
     </div>
     <script src="ws.js"></script>
     <script src="game.js"></script>
-    <script> let player = new initPlayer("me", 500);</script>
+    <script> let player = new initPlayer("me", 500);
+        reset(player);
+    </script>
 </body>
 </html>

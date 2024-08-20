@@ -113,8 +113,8 @@ module.exports = (app) => {
 					console.log(players[playerName]);
 				} else if (parsedMessage.type === 'hand') {
 					const { playerName, hand } = parsedMessage.data;
-					console.log(hand);
-					players[playerName].hands = hand;
+					console.log(hand + ' 116');
+					players[playerName].cards = hand;
 				}
 				else if (parsedMessage.type === 'done') {
 					let done = true;
@@ -124,11 +124,12 @@ module.exports = (app) => {
 						if (players[player].done !== "done") done = false;
 					  });
 					if(done){
-						blackjack.endDealer(dealer, deck)
+						blackjack.endDealer(dealer, deck);
 						broadcastMessage(JSON.stringify({ type: 'done', message: dealer}));
 						lobbies[lobbyCode].game["dealer"] = new blackjack.initDealer(deck);
 						Object.keys(players).forEach(player => {
 						curBalance = players[player].balance;
+						console.log(players[player].cards);
 						players[player] = blackjack.initPlayer("me", curBalance);
 					  });
 

@@ -33,7 +33,7 @@ lobbyConnectButton.addEventListener("click", () => {
 
     ws.onopen = () => {
         document.querySelector('.container').style.display = '';
-        readyButton.style.display = "";
+        betDisplay.style.display = "";
         const dateTime = new Date();
 
         lobbyCodeDisplay.textContent = `Lobby Code: ${lobbyCode}`;
@@ -47,22 +47,17 @@ lobbyConnectButton.addEventListener("click", () => {
         try {
             const data = JSON.parse(event.data);
 
-            if (data.type === 'ready') {
+            if ((data.type === 'ready')) {
                 if (resolveResponse) {
                     resolveResponse(data.message);
                     resolveResponse = null;
                 }
             } else if (data.type === 'start') {
-                console.log(data.message)
-                Object.keys(data.message.players).forEach(p => {
-                    console.log(data.message.players[p].name);
-                    if(data.message.players[p].name === n){
-                        console.log(player, data.message.players[p].cards[0]);
-                        newHand(player, data.message.players[p].cards[0]);
-                        checkBets(player,data.message.dealer);
-                        // check for split / insurance
-                    }           
-                  });
+                if (resolveResponse) {
+                    resolveResponse(data.message);
+                    resolveResponse = null;
+                }
+
             } else if (data.type === 'done') {
                 if (resolveResponse) {
                     resolveResponse(data.message);
@@ -97,14 +92,14 @@ lobbyConnectButton.addEventListener("click", () => {
 async function askForCard() {
     return new Promise((resolve) => {
         resolveResponse = resolve;
-        const message = JSON.stringify({type: 'card', data: {playerName: 'me'}});
+        const message = JSON.stringify({type: 'card', data: {playerName: n}});
         ws.send(message);
     });
 }
 async function askForDealer() {
     return new Promise((resolve) => {
         resolveResponse = resolve;
-        const message = JSON.stringify({type: 'done', data: {playerName: 'me', status : "done"}});
+        const message = JSON.stringify({type: 'done', data: {playerName: n, status : "done"}});
         ws.send(message);
     });
 }

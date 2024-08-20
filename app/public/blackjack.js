@@ -88,8 +88,8 @@ function dealerHand(dealer, deck){
 
 
 function newHand(player, deck){
-    cards = [deck.pop(), deck.pop()]
-    player.cards.push(cards);
+    let cards = [[deck.pop(), deck.pop()]];
+    player.cards = cards;
     return;
 }
 
