@@ -2,31 +2,27 @@ let express = require("express");
 let http = require("http");
 let { Server } = require("socket.io");
 
-// after running
-// npm i socket.io
-// client library is at
-// node_modules/socket.io/client-dist/socket.io.js
-// copy that file into public/ so it can be "imported" client-side, too
-
 let app = express();
 let server = http.createServer(app);
 let io = new Server(server);
+
+let host = "localhost";
+let port = 3000;
 
 app.use(express.static("public"));
 
 // global object to hold socket objects; structure is:
 // {[roomId]: {[socketId]: [...socket objects...]}}
 let rooms = {};
-// can also use socket.io's rooms functionality
-// instead of manually maintaining an object of rooms
-// https://socket.io/docs/v3/rooms/
 
 function generateRoomCode() {
 	let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	let result = "";
+
 	for (let i = 0; i < 5; i++) {
 		result += characters.charAt(Math.floor(Math.random() * characters.length));
 	}
+
 	return result;
 }
 
@@ -34,18 +30,23 @@ function generateRoomCode() {
 function printRooms() {
 	for (let [roomId, sockets] of Object.entries(rooms)) {
 		console.log(roomId);
+
 		for (let [socketId, socket] of Object.entries(sockets)) {
 			console.log(`\t${socketId}`);
 		}
 	}
 }
 
+// create "room" ie lobby
 app.post("/create", (req, res) => {
 	let roomId = generateRoomCode();
+
 	rooms[roomId] = {};
+
 	return res.json({ roomId });
 });
 
+// check for preexising "room" ie lobby
 app.get("/checkRoomId/:roomId", (req, res) => {
 	const roomId = req.params.roomId;
 
@@ -54,9 +55,11 @@ app.get("/checkRoomId/:roomId", (req, res) => {
 
 app.get("/room/:roomId", (req, res) => {
 	let { roomId } = req.params;
+
 	if (!rooms.hasOwnProperty(roomId)) {
 		return res.status(404).send();
 	}
+
 	console.log("Sending room", roomId);
 	// could also use server-side rendering to create the HTML
 	// that way, we could embed the room code
@@ -79,6 +82,7 @@ io.on("connection", (socket) => {
 	let url = socket.handshake.headers.referer;
 	let pathParts = url.split("/");
 	let roomId = pathParts[pathParts.length - 1];
+
 	console.log(pathParts, roomId);
 
 	// room doesn't exist - this should never happen, but jic
@@ -86,8 +90,7 @@ io.on("connection", (socket) => {
 		return;
 	}
 
-	// add socket object to room so other sockets in same room
-	// can send messages to it later
+	// add socket object to room so other sockets in same room can send messages to it later
 	rooms[roomId][socket.id] = socket;
 
 	/* MUST REGISTER socket.on(event) listener FOR EVERY event CLIENT CAN SEND */
@@ -101,31 +104,32 @@ io.on("connection", (socket) => {
 		delete rooms[roomId][socket.id];
 	});
 
-	socket.on("foo", ({ message }) => {
+	socket.on("message", ({ message }) => {
 		// we still have a reference to the roomId defined above
 		// b/c this function is defined inside the outer function
-		console.log(`Socket ${socket.id} sent message: ${message}, ${roomId}`);
+		console.log(`Socket ${socket.id} sent message: "${message}" | Lobby: ${roomId}`);
 		console.log("Broadcasting message to other sockets");
+
+		const messageData = {
+			socketId: socket.id,
+			message,
+		};
 
 		// this would send the message to all other sockets
 		// but we want to only send it to other sockets in this room
 		// socket.broadcast.emit("message", message);
 
 		for (let otherSocket of Object.values(rooms[roomId])) {
-			// don't need to send same message back to socket
-			// socket.broadcast.emit automatically skips current socket
-			// but since we're doing this manually, we need to do it ourselves
 			if (otherSocket.id === socket.id) {
 				continue;
 			}
+
 			console.log(`Sending message ${message} to socket ${otherSocket.id}`);
-			otherSocket.emit("bar", message);
+			otherSocket.emit("relay", messageData);
 		}
 	});
 });
 
-let host = "localhost";
-let port = 3000;
 server.listen(port, host, () => {
 	console.log(`http://${host}:${port}`);
 });
