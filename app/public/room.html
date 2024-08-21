@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Demo</title>
+	</head>
+	<body>
+		<p id="lobby-code-display">Lobby:</p>
+		<input id="message-input" type="text" placeholder="Enter a message" />
+		<button id="send-message">Send</button>
+		<div id="messages"></div>
+
+		<script src="/socket.io/socket.io.js"></script>
+
+		<script>
+			let sendMessageButton = document.getElementById("send-message");
+			let messageInput = document.getElementById("message-input");
+			let messagesDiv = document.getElementById("messages");
+
+			// extract room ID from URL
+			// if we did server side rendering, server could embed it in the JS for us
+			let pathParts = window.location.pathname.split("/");
+			let roomId = pathParts[pathParts.length - 1];
+
+			document.getElementById("lobby-code-display").textContent += ` ${roomId}`;
+
+			function appendMessage(socketId, message) {
+				let item = document.createElement("div");
+
+				socketId === socket.id ? (item.textContent = `You: ${message}`) : (item.textContent = `${socketId}: ${message}`);
+
+				// item.textContent = `${socketId}: ${message}`;
+
+				messagesDiv.appendChild(item);
+			}
+
+			let socket = io();
+
+			socket.on("connect", () => {
+				console.log("I am connected", socket.id);
+			});
+
+			sendMessageButton.addEventListener("click", () => {
+				let message = messageInput.value;
+
+				if (message === "") {
+					return;
+				}
+
+				console.log("Sending message:", message);
+				// socket.emit can send a string, object, array, etc.
+				socket.emit("message", { message });
+				// need to append its own message, as it won't receive its own event
+				appendMessage(socket.id, message);
+
+				messageInput.value = "";
+			});
+
+			messageInput.addEventListener("keypress", (event) => {
+				if (event.key === "Enter") {
+					sendMessageButton.click();
+				}
+			});
+
+			/* MUST REGISTER socket.on(event) listener FOR EVERY event SERVER CAN SEND */
+
+			// RELAYS message to other clients
+			socket.on("relay", function (data) {
+				console.log("Received message:", data);
+				appendMessage(data.socketId, data.message);
+			});
+		</script>
+	</body>
+</html>
