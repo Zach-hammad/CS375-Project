@@ -6,6 +6,7 @@
 		<title>Demo</title>
 	</head>
 	<body>
+		<p id="lobby-code-display">Lobby:</p>
 		<input id="input" />
 		<button id="send">Send</button>
 		<div id="messages"></div>
@@ -20,9 +21,11 @@
 			let pathParts = window.location.pathname.split("/");
 			let roomId = pathParts[pathParts.length - 1];
 
-			function appendMessage(message) {
+			document.getElementById("lobby-code-display").textContent += roomId;
+
+			function appendMessage(socketId, message) {
 				let item = document.createElement("div");
-				item.textContent = message;
+				item.textContent = `${socketId}: ${message}`;
 				messagesDiv.appendChild(item);
 			}
 
@@ -53,7 +56,7 @@
 				// socket.emit can send a string, object, array, etc.
 				socket.emit("foo", { message });
 				// need to append its own message, as it won't receive its own event
-				appendMessage(message);
+				appendMessage(socket.id, message);
 			});
 
 			/* MUST REGISTER socket.on(event) listener FOR EVERY event SERVER CAN SEND */

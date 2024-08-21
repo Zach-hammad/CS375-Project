@@ -19,7 +19,7 @@
 
 		<script>
 			let createLobbyButton = document.getElementById("create-lobby");
-			let joinLobbyButton = document.getElementById("create-lobby");
+			let joinLobbyButton = document.getElementById("join-lobby");
 			let lobbyCodeInput = document.getElementById("lobby-code-input");
 
 			let idsDiv = document.getElementById("ids");
@@ -31,21 +31,21 @@
 				window.location = `/room/${roomId}`;
 			});
 
-			// joinLobbyButton.addEventListener("click", () => {
-			// 	const lobbyCode = lobbyCodeInput.value.trim();
+			joinLobbyButton.addEventListener("click", () => {
+				const lobbyCode = lobbyCodeInput.value.trim();
 
-			// 	fetch(`/checkRoomId/${lobbyCode}`)
-			// 		.then((response) => {
-			// 			if (response.ok) {
-			// 				window.location = `/room/${lobbyCode}`;
-			// 			} else {
-			// 				throw new Error("Please enter a valid lobby code.");
-			// 			}
-			// 		})
-			// 		.catch((error) => {
-			// 			alert(error.message);
-			// 		});
-			// });
+				fetch(`/checkRoomId/${lobbyCode}`)
+					.then((response) => {
+						if (response.ok) {
+							window.location = `/room/${lobbyCode}`;
+						} else {
+							throw new Error("Please enter a valid lobby code.");
+						}
+					})
+					.catch((error) => {
+						alert(error.message);
+					});
+			});
 		</script>
 	</body>
 </html>
