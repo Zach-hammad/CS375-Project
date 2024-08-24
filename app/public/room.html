@@ -80,6 +80,9 @@
 				messagesDiv.appendChild(item);
 			}
 
+			// deployment
+			// let socket = io("https://csblackjack.fly.dev");
+			// local
 			let socket = io();
 
 			socket.on("connect", () => {
