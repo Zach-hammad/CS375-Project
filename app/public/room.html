@@ -6,12 +6,57 @@
 		<title>Demo</title>
 	</head>
 	<body>
+		<div class="container">
+			<p>Dealer's Cards</p>
+			<p id="dealer"></p>
+			<p>Player's Cards</p>
+			<p id="player"></p>
+			<p id="message"></p>
+	
+			<div id="buttons">
+				<button id="hit">HIT</button>
+				<button id="stand">STAND</button>
+				<button id="double">DOUBLE DOWN</button>
+			</div>
+			<button id="split">SPLIT</button>
+			<button id="insurance">INSURANCE</button>
+		</div>
+
+		<div id="betDisplay">
+            <div>
+                <label for="betValue">Bet Amount</label>
+                <input type="text" id="betValue" placeholder="Enter amount"><br>
+                <button id="betReady">BET</button>
+            </div>
+
+            <div class="form-group">
+                <label for="sideBet">Select Side Bet:</label>
+                <select id="sideBet" name="sideBet" required>
+                    <option value="" disabled selected>Select a side bet</option>
+                    <option value="lucky">Lucky Ladies</option>
+                    <option value="poker">21+3</option>
+                    <option value="pairs">Perfect Pairs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="betAmount">Enter Bet Amount:</label>
+                <input type="text" id="sideBetValue" placeholder="Enter side bet amount"><br>
+            </div>
+            <button id="sideBetReady">Submit Side Bet</button>
+            <p id="sideMessage"></p>
+
+        <p>Balance</p>
+        <p id="balance"></p>
+
+    </div>
+
 		<p id="lobby-code-display">Lobby:</p>
 		<input id="message-input" type="text" placeholder="Enter a message" />
 		<button id="send-message">Send</button>
 		<div id="messages"></div>
 
 		<script src="/socket.io/socket.io.js"></script>
+		<script src = /game.js></script>
 
 		<script>
 			let sendMessageButton = document.getElementById("send-message");
@@ -70,6 +115,14 @@
 				console.log("Received message:", data);
 				appendMessage(data.socketId, data.message);
 			});
+			socket.on("start", function (data) {
+				console.log("Received message:", data);
+			});
+
+		</script>
+		<script>
+			let player = new initPlayer("me", 500);
+			reset(player);
 		</script>
 	</body>
 </html>

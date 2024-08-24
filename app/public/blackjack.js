@@ -6,11 +6,12 @@ function initDealer() {
         blackjack: false
     };
 }
-function initPlayer(name, balance) {
+function initPlayer(name, balance, id) {
     return {
         name: name,
+        id: id,
         balance: balance,
-        ready: "no",
+        status: "no",
         cards: [],
         bet: 0,
         win: 0
@@ -74,7 +75,7 @@ function Game(player, balance){
 
 function dealerHand(dealer, deck){
     //start the dealer's hand
-    dealer.cards.push(deck.pop());
+    dealer.cards = [deck.pop()];
     //dealer.cards = [["SPADE", "ACE"]];
     dealer.cardValue = getCardValue(dealer.cards);
 

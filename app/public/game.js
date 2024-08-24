@@ -179,9 +179,10 @@ function newHand(player, cards){
         return;
     }
     //check for split
-    if(hand.cards[0][1] === hand.cards[1][1]){
+    if((hand.cards[0][1] === hand.cards[1][1]) && hand.cards.length == 2){
         split.style.display = "";
-    }
+    } else split.style.display = "none";
+
     displayPlayer.textContent = hand.cards;
     console.log(player.bet);
 
@@ -243,7 +244,6 @@ function payout(player,dealer){
     player.balance += balance;
     player.betWon = balance;
     console.log(balance, player.balance, player.betWon, player.bet);
-    console.log("sssspay");
     return;
 }
 
@@ -267,8 +267,6 @@ function reset(player){
     player.betWon = 0;
     player.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
     player.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
-
-    console.log("ssssres");
 
     return;
 }
@@ -310,14 +308,15 @@ function hitFunction(player, card){
 } 
 
 hit.addEventListener('click', async () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        let card  = await askForCard();
+    socket.emit("askForCard", [socket.id , player.name]);
+    socket.once('card', (data) => {
+        let card = data;
         console.log(player.bet);
         console.log(card);
         hitFunction(player,card);
         
         if(player.bet !== 0) sendHand(player);
-    }
+    });
 });
 ////////// End Turn //////////
 
@@ -359,17 +358,19 @@ async function endTurn(player){
 
     //if not all hands are done, hit the next hand
     if (!(player.handsDone === player.hands.length)){
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            let card  = await askForCard();
+        socket.emit("askForCard", [socket.id , player.name]);
+        socket.once('card', (data) => {
+            let card = data;
             console.log(card);
             hitFunction(player,card);
-        }
-    } 
+        });  
     //else end the turn, check for a win, and reset hand
-    else {
-        if (ws && ws.readyState === WebSocket.OPEN) {
+    } else {
+        socket.emit("done", [socket.id , player.name]);
+        socket.once('end', (data) => {
             // send the finished hand first, then wait for dealer
-            let dealer = await askForDealer();
+            console.log(data);
+            dealer = data;
             console.log(dealer);
             displayDealer.textContent = dealer.cards;
             for (let i = 0; i < player.hands.length; i++){
@@ -380,7 +381,9 @@ async function endTurn(player){
             sendWin(player);
             console.log(JSON.stringify(player));
             reset(player);
-        }
+        });  
+
+        
     }
 }
 
@@ -394,7 +397,6 @@ stand.addEventListener("click", () => {
 
 betReady.addEventListener("click", async() => {
     console.log(JSON.stringify(player));
-    reset(player);
     let betVal = document.getElementById("betValue"); //normal bet
     player.bet = parseInt(betVal.value);
     console.log(parseInt(betVal.value));
@@ -402,7 +404,7 @@ betReady.addEventListener("click", async() => {
 
     let totalBet= 0;
     player.balance -= player.bet;
-    for ([betVal, value] of Object.entries(player.sideBets)){
+    for (value of Object.values(player.sideBets)){
         totalBet += parseInt(value); // for local running
         //totalBet += value; // for website
     }
@@ -410,25 +412,31 @@ betReady.addEventListener("click", async() => {
     sendBet(player, totalBet);
     console.log(player);
 
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        let data = await sendReady(player);
+    socket.emit("playerReady", [socket.id , player.name]);
+    
+    // Listen for the server's response
+    socket.once('playerData', (data) => {
         console.log(data);
-        Object.keys(data.players).forEach(p => {
-            if(data.players[p].name === n){
-                newHand(player, data.players[p].cards[0]);
-                checkBets(player,data.dealer);
-                displayDealer.textContent = data.dealer.cards;
-                //check for insurance
-                console.log(data.dealer);
-                if(data.dealer.cards[0][1] === "ACE"){
+        players = data[0];
+        dealer = data[1];
+        Object.keys(players).forEach(p => {
+            if (players[p].name === player.name) {
+                newHand(player, players[p].cards[0]);
+                checkBets(player, dealer);
+                displayDealer.textContent = dealer.cards;
+                
+                // Check for insurance
+                console.log(dealer);
+                if (dealer.cards[0][1] === "ACE") {
                     insurance.style.display = "";
                 }
-            }           
-          });
-    }
+            }
+        });
+    });
     console.log(JSON.stringify(player));
     return;
-})
+    })
+
 
 sideBetReady.addEventListener("click", () => {
     //check if side bet exists, and enter into object
@@ -444,17 +452,20 @@ sideBetReady.addEventListener("click", () => {
 ////////// Double Functions //////////
 
 double.addEventListener("click", async () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        let card  = await askForCard();
-        //minus bet, hit, if turn not done, end turn
-        let hand = player.hands[player.handsDone];
-        player.balance -= player.bet;
-        sendBet(player, player.bet);
-        hand.doubleDown = true;
-        hitFunction(player, card);
-        if (!hand.done) endTurn(player);
-        sendHand(player);
-    }
+    socket.emit("askForCard", [socket.id , player.name]);
+    socket.once('card', (data) => {
+        console.log(data);
+            let card  = data;
+            //minus bet, hit, if turn not done, end turn
+            let hand = player.hands[player.handsDone];
+            player.balance -= player.bet;
+            sendBet(player, player.bet);
+            hand.doubleDown = true;
+            hitFunction(player, card);
+            if (!hand.done) endTurn(player);
+            sendHand(player);
+        });
+    
     return;
 })
 
@@ -462,9 +473,9 @@ double.addEventListener("click", async () => {
 
 
 split.addEventListener("click", async ()=>{
-    split.style.display = "none";
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        let card  = await askForCard();
+    socket.emit("askForCard", [socket.id , player.name]);
+    socket.once('card', (data) => {
+        let card  = data;
         //create a new hand with one card in each hand
         player.hands.push(new initHand());
         player.hands[player.hands.length - 1].cards.push(player.hands[player.handsDone].cards.pop());
@@ -480,9 +491,7 @@ split.addEventListener("click", async ()=>{
 
         displayPlayer.textContent = first.cards;
         sendHand(player);
-    }
-
-
+    });
     return;
 })
 
@@ -498,19 +507,11 @@ insurance.addEventListener("click", ()=>{
 
 
 function sendBet(player, bet){
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({type: 'bet', data: {playerName: n, bet: bet}});
-        ws.send(message);
-    }
-
+    socket.emit('bet', [bet, player.name]);
 }
 
 function sendWin(player){
-    console.log("sssswin");
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({type: 'win', data: {playerName: n, betWon: player.betWon}});
-        ws.send(message);
-    }
+    socket.emit('win', [player.betWon, player.name]);
 }
 
 function sendHand(player){
@@ -519,16 +520,10 @@ function sendHand(player){
         cards.push(player.hands[i].cards);
     }
     console.log(cards);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        const message = JSON.stringify({type: "hand", data: {playerName: n, hand: cards}});
-        ws.send(message);
-    }
+    socket.emit('hand', [player.name, cards]);
 }
 
-async function sendReady(player){
-    return new Promise((resolve) => {
-        resolveResponse = resolve;
-        const message = JSON.stringify({type: 'ready', data: {playerName: n, status: "ready"}});
-        ws.send(message);
-    });
+function sendDone(player){
+    socket.emit('done', [socket.id, player.name]);
 }
+
