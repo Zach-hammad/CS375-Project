@@ -36,8 +36,8 @@ if (process.env.NODE_ENV == "production") {
 console.log(databaseConfig);
 
 // uncomment these to debug
-// console.log(JSON.stringify(process.env, null, 2));
-// console.log(JSON.stringify(databaseConfig, null, 2));
+//console.log(JSON.stringify(process.env, null, 2));
+//console.log(JSON.stringify(databaseConfig, null, 2));
 
 let pool = new Pool(databaseConfig);
 
@@ -68,27 +68,41 @@ app.post("/datum", (req, res) => {
 });
 
 app.post('/save-nickname', async (req, res) => {
-	const { ethAddress, nickname, balance } = req.body;
-  
-	// Log the balance type to ensure it's numeric
-	balance = parseFloat(balance);
-	console.log('Received balance:', balance, 'Type:', typeof balance);
-  
-	try {
-	  const result = await pool.query(
-		`INSERT INTO users (eth_address, nickname, balance) 
-		 VALUES ($1, $2, $3) 
-		 ON CONFLICT (eth_address) 
-		 DO UPDATE SET nickname = $2, balance = $3 
-		 RETURNING *`,
-		[ethAddress, nickname, balance] // Ensure balance is passed as a numeric value
-	  );
-	  res.json(result.rows[0]);
-	} catch (error) {
-	  console.error('Error saving nickname and balance:', error);
-	  res.status(500).json({ error: 'Internal Server Error' });
-	}
-  });
+    const { ethAddress, nickname, balance } = req.body;
+
+    // Validate and parse inputs
+    const parsedBalance = parseFloat(balance);
+    if (!ethAddress || !nickname || isNaN(parsedBalance)) {
+        console.error('Invalid input data:', { ethAddress, nickname, balance });
+        return res.status(400).json({ error: "Invalid input data" });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO users (eth_address, nickname, balance) 
+             VALUES ($1, $2, $3) 
+             ON CONFLICT (eth_address) 
+             DO UPDATE SET nickname = $2, balance = $3 
+             RETURNING *`,
+            [ethAddress, nickname, parsedBalance]
+        );
+
+        // Set the 'loggedIn' cookie upon successful login
+        res.cookie('loggedIn', true, { httpOnly: true, secure: true, sameSite: 'strict' });
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error saving nickname and balance:', error.stack);
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    }
+});
+
+app.get('/api/check-login-status', (req, res) => {
+    if (req.cookies.loggedIn) {
+        res.json({ loggedIn: true });
+    } else {
+        res.json({ loggedIn: false });
+    }
+});
 
 app.get("/get-nickname/:ethAddress", async (req, res) => {
 	const { ethAddress } = req.params;

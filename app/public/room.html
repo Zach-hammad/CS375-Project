@@ -1,131 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Demo</title>
-	</head>
-	<body>
-		<div class="container">
-			<p>Dealer's Cards</p>
-			<p id="dealer"></p>
-			<p>Player's Cards</p>
-			<p id="player"></p>
-			<p id="message"></p>
-	
-			<div id="buttons">
-				<button id="hit">HIT</button>
-				<button id="stand">STAND</button>
-				<button id="double">DOUBLE DOWN</button>
-			</div>
-			<button id="split">SPLIT</button>
-			<button id="insurance">INSURANCE</button>
-		</div>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo</title>
+</head>
+<body>
+    <div class="container">
+        <p>Dealer's Cards</p>
+        <p id="dealer"></p>
+        <p>Player's Cards</p>
+        <p id="player"></p>
+        <p id="message"></p>
 
-		<div id="betDisplay">
-            <div>
-                <label for="betValue">Bet Amount</label>
-                <input type="text" id="betValue" placeholder="Enter amount"><br>
-                <button id="betReady">BET</button>
-            </div>
+        <div id="buttons">
+            <button id="hit">HIT</button>
+            <button id="stand">STAND</button>
+            <button id="double">DOUBLE DOWN</button>
+        </div>
+        <button id="split">SPLIT</button>
+        <button id="insurance">INSURANCE</button>
+    </div>
 
-            <div class="form-group">
-                <label for="sideBet">Select Side Bet:</label>
-                <select id="sideBet" name="sideBet" required>
-                    <option value="" disabled selected>Select a side bet</option>
-                    <option value="lucky">Lucky Ladies</option>
-                    <option value="poker">21+3</option>
-                    <option value="pairs">Perfect Pairs</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="betAmount">Enter Bet Amount:</label>
-                <input type="text" id="sideBetValue" placeholder="Enter side bet amount"><br>
-            </div>
-            <button id="sideBetReady">Submit Side Bet</button>
-            <p id="sideMessage"></p>
+    <div id="betDisplay">
+        <div>
+            <label for="betValue">Bet Amount</label>
+            <input type="text" id="betValue" placeholder="Enter amount"><br>
+            <button id="betReady">BET</button>
+        </div>
+
+        <div class="form-group">
+            <label for="sideBet">Select Side Bet:</label>
+            <select id="sideBet" name="sideBet" required>
+                <option value="" disabled selected>Select a side bet</option>
+                <option value="lucky">Lucky Ladies</option>
+                <option value="poker">21+3</option>
+                <option value="pairs">Perfect Pairs</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="betAmount">Enter Bet Amount:</label>
+            <input type="text" id="sideBetValue" placeholder="Enter side bet amount"><br>
+        </div>
+        <button id="sideBetReady">Submit Side Bet</button>
+        <p id="sideMessage"></p>
 
         <p>Balance</p>
         <p id="balance"></p>
 
     </div>
 
-		<p id="lobby-code-display">Lobby:</p>
-		<input id="message-input" type="text" placeholder="Enter a message" />
-		<button id="send-message">Send</button>
-		<div id="messages"></div>
+    <p id="lobby-code-display">Lobby:</p>
+    <input id="message-input" type="text" placeholder="Enter a message" />
+    <button id="send-message">Send</button>
+    <div id="messages"></div>
 
-		<script src="/socket.io/socket.io.js"></script>
-		<script src = /game.js></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/game.js"></script>
 
-		<script>
-			let sendMessageButton = document.getElementById("send-message");
-			let messageInput = document.getElementById("message-input");
-			let messagesDiv = document.getElementById("messages");
+    <script>
+        // Function to check if the user is logged in
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/check-login-status', {
+                    method: 'GET',
+                    credentials: 'include' // Include cookies in the request
+                });
+                const result = await response.json();
+                return result.loggedIn;
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                return false;
+            }
+        }
 
-			// extract room ID from URL
-			// if we did server side rendering, server could embed it in the JS for us
-			let pathParts = window.location.pathname.split("/");
-			let roomId = pathParts[pathParts.length - 1];
+        // Initialize buttons with login check
+        async function initializeButtons() {
+            const isLoggedIn = await checkLoginStatus();
+            const hitButton = document.getElementById("hit");
+            const standButton = document.getElementById("stand");
+            const doubleButton = document.getElementById("double");
+            const splitButton = document.getElementById("split");
+            const insuranceButton = document.getElementById("insurance");
+            const betButton = document.getElementById("betReady");
+            const sideBetButton = document.getElementById("sideBetReady");
 
-			document.getElementById("lobby-code-display").textContent += ` ${roomId}`;
+            if (!isLoggedIn) {
+                alert("You must be logged in to perform this action.");
 
-			function appendMessage(socketId, message) {
-				let item = document.createElement("div");
+                // Disable all game-related buttons
+                hitButton.disabled = true;
+                standButton.disabled = true;
+                doubleButton.disabled = true;
+                splitButton.disabled = true;
+                insuranceButton.disabled = true;
+                betButton.disabled = true;
+                sideBetButton.disabled = true;
+            } else {
+                // Enable buttons if logged in
+                hitButton.disabled = false;
+                standButton.disabled = false;
+                doubleButton.disabled = false;
+                splitButton.disabled = false;
+                insuranceButton.disabled = false;
+                betButton.disabled = false;
+                sideBetButton.disabled = false;
+            }
 
-				socketId === socket.id ? (item.textContent = `You: ${message}`) : (item.textContent = `${socketId}: ${message}`);
+            // Example of handling the "HIT" button click
+            hitButton.addEventListener("click", async () => {
+                const isLoggedIn = await checkLoginStatus();
+                if (!isLoggedIn) {
+                    alert("You must be logged in to HIT.");
+                    return;
+                }
+                // Proceed with HIT logic
+                console.log("HIT action performed.");
+            });
 
-				// item.textContent = `${socketId}: ${message}`;
+            // Similar logic can be applied to other buttons...
+        }
 
-				messagesDiv.appendChild(item);
-			}
+        // Initialize buttons on page load
+        document.addEventListener("DOMContentLoaded", initializeButtons);
 
-			// deployment
-			// let socket = io("https://csblackjack.fly.dev");
-			// local
-			let socket = io();
+        let sendMessageButton = document.getElementById("send-message");
+        let messageInput = document.getElementById("message-input");
+        let messagesDiv = document.getElementById("messages");
 
-			socket.on("connect", () => {
-				console.log("I am connected", socket.id);
-			});
+        // extract room ID from URL
+        // if we did server side rendering, server could embed it in the JS for us
+        let pathParts = window.location.pathname.split("/");
+        let roomId = pathParts[pathParts.length - 1];
 
-			sendMessageButton.addEventListener("click", () => {
-				let message = messageInput.value;
+        document.getElementById("lobby-code-display").textContent += ` ${roomId}`;
 
-				if (message === "") {
-					return;
-				}
+        function appendMessage(socketId, message) {
+            let item = document.createElement("div");
 
-				console.log("Sending message:", message);
-				// socket.emit can send a string, object, array, etc.
-				socket.emit("message", { message });
-				// need to append its own message, as it won't receive its own event
-				appendMessage(socket.id, message);
+            socketId === socket.id ? (item.textContent = `You: ${message}`) : (item.textContent = `${socketId}: ${message}`);
 
-				messageInput.value = "";
-			});
+            messagesDiv.appendChild(item);
+        }
 
-			messageInput.addEventListener("keypress", (event) => {
-				if (event.key === "Enter") {
-					sendMessageButton.click();
-				}
-			});
+        // deployment
+        // let socket = io("https://csblackjack.fly.dev");
+        // local
+        let socket = io();
 
-			/* MUST REGISTER socket.on(event) listener FOR EVERY event SERVER CAN SEND */
+        socket.on("connect", () => {
+            console.log("I am connected", socket.id);
+        });
 
-			// RELAYS message to other clients
-			socket.on("relay", function (data) {
-				console.log("Received message:", data);
-				appendMessage(data.socketId, data.message);
-			});
-			socket.on("start", function (data) {
-				console.log("Received message:", data);
-			});
+        sendMessageButton.addEventListener("click", () => {
+            let message = messageInput.value;
 
-		</script>
-		<script>
-			let player = new initPlayer("me", 500);
-			reset(player);
-		</script>
-	</body>
+            if (message === "") {
+                return;
+            }
+
+            console.log("Sending message:", message);
+            // socket.emit can send a string, object, array, etc.
+            socket.emit("message", { message });
+            // need to append its own message, as it won't receive its own event
+            appendMessage(socket.id, message);
+
+            messageInput.value = "";
+        });
+
+        messageInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                sendMessageButton.click();
+            }
+        });
+
+        /* MUST REGISTER socket.on(event) listener FOR EVERY event SERVER CAN SEND */
+
+        // RELAYS message to other clients
+        socket.on("relay", function (data) {
+            console.log("Received message:", data);
+            appendMessage(data.socketId, data.message);
+        });
+        socket.on("start", function (data) {
+            console.log("Received message:", data);
+        });
+
+        // Example of initializing the player and resetting the game state
+        let player = new initPlayer("me", 500);
+        reset(player);
+    </script>
+</body>
 </html>
