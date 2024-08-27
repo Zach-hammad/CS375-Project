@@ -18,33 +18,44 @@ window.onload = function() {
 
 async function loginWithEth() {
   const nickname = document.getElementById("nickname").value;
+  const deposit = parseFloat(document.getElementById("deposit").value);
+
   if (!nickname) {
     alert('Please enter a nickname.');
     return;
   }
 
+  if (!deposit || isNaN(deposit) || deposit <= 0) {
+    alert('Please enter a valid deposit amount.');
+    return;
+  }
+
+  console.log('Deposit amount:', deposit);
+
   if (window.ethereum) {
     try {
       const accounts = await window.web3.eth.getAccounts();
       const account = accounts[0]; 
-      console.log(account);
+      console.log('ETH Address:', account);
       window.localStorage.setItem('userETHaddress', account);
-      console.log(`Logged in with ETH address: ${account}`);
-      
 
       const response = await fetch('/save-nickname', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ethAddress: account, nickname: nickname }),
+        body: JSON.stringify({ ethAddress: account, nickname: nickname, balance: deposit }),
       });
       
-      const result = await response.json();
+      // Check if the response is OK (status 200-299)
       if (response.ok) {
-        console.log('Nickname saved:', result);
+        // Try to parse the response as JSON
+        const result = await response.json();
+        console.log('Nickname and deposit saved:', result);
       } else {
-        console.error('Error saving nickname:', result.error);
+        console.error('Server error:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
       }
     } catch (error) {
       console.error('Error fetching accounts:', error);
