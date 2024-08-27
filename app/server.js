@@ -1,6 +1,7 @@
 let express = require("express");
 let http = require("http");
 let { Server } = require("socket.io");
+let cookieParser = require('cookie-parser');
 
 let app = express();
 let server = http.createServer(app);
@@ -16,6 +17,8 @@ let { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
+app.use(cookieParser());
+
 
 let databaseConfig;
 
@@ -36,8 +39,8 @@ if (process.env.NODE_ENV == "production") {
 console.log(databaseConfig);
 
 // uncomment these to debug
-// console.log(JSON.stringify(process.env, null, 2));
-// console.log(JSON.stringify(databaseConfig, null, 2));
+//console.log(JSON.stringify(process.env, null, 2));
+//console.log(JSON.stringify(databaseConfig, null, 2));
 
 let pool = new Pool(databaseConfig);
 
@@ -67,16 +70,65 @@ app.post("/datum", (req, res) => {
 		});
 });
 
-app.post("/save-nickname", async (req, res) => {
-	const { ethAddress, nickname } = req.body;
-	try {
-		const result = await pool.query("INSERT INTO users (eth_address, nickname) VALUES ($1, $2) ON CONFLICT (eth_address) DO UPDATE SET nickname = $2 RETURNING *", [ethAddress, nickname]);
-		res.json(result.rows[0]);
-	} catch (error) {
-		console.error("Error saving nickname:", error);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+app.post('/save-nickname', (req, res) => {
+    const ethAddress = req.cookies.ethAddress;
+    const { nickname, balance } = req.body;
+
+    if (!ethAddress) {
+        return res.status(400).json({ error: 'Ethereum address not found in cookies' });
+    }
+
+    // Save the nickname and balance using the ethAddress from the cookie
+    pool.query(
+        `INSERT INTO users (eth_address, nickname, balance) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (eth_address) 
+         DO UPDATE SET nickname = $2, balance = $3 
+         RETURNING *`,
+        [ethAddress, nickname, balance],
+        (error, result) => {
+            if (error) {
+                console.error('Error saving nickname and balance:', error);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.json(result.rows[0]);
+        }
+    );
 });
+
+
+
+app.get('/api/check-login-status', (req, res) => {
+    if (req.cookies.loggedIn) {
+        res.json({ loggedIn: true });
+    } else {
+        res.json({ loggedIn: false });
+    }
+});
+
+app.get('/api/get-user-data', async (req, res) => {
+    const ethAddress = req.cookies.ethAddress; // Assuming ethAddress is stored in cookies
+
+    if (!ethAddress) {
+        return res.status(400).json({ error: 'User not logged in' });
+    }
+
+    try {
+        const result = await pool.query("SELECT nickname, balance FROM users WHERE eth_address = $1", [ethAddress]);
+        if (result.rows.length > 0) {
+            res.json({
+                nickname: result.rows[0].nickname,
+                balance: result.rows[0].balance
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 app.get("/get-nickname/:ethAddress", async (req, res) => {
 	const { ethAddress } = req.params;
