@@ -67,16 +67,28 @@ app.post("/datum", (req, res) => {
 		});
 });
 
-app.post("/save-nickname", async (req, res) => {
-	const { ethAddress, nickname } = req.body;
+app.post('/save-nickname', async (req, res) => {
+	const { ethAddress, nickname, balance } = req.body;
+  
+	// Log the balance type to ensure it's numeric
+	balance = parseFloat(balance);
+	console.log('Received balance:', balance, 'Type:', typeof balance);
+  
 	try {
-		const result = await pool.query("INSERT INTO users (eth_address, nickname) VALUES ($1, $2) ON CONFLICT (eth_address) DO UPDATE SET nickname = $2 RETURNING *", [ethAddress, nickname]);
-		res.json(result.rows[0]);
+	  const result = await pool.query(
+		`INSERT INTO users (eth_address, nickname, balance) 
+		 VALUES ($1, $2, $3) 
+		 ON CONFLICT (eth_address) 
+		 DO UPDATE SET nickname = $2, balance = $3 
+		 RETURNING *`,
+		[ethAddress, nickname, balance] // Ensure balance is passed as a numeric value
+	  );
+	  res.json(result.rows[0]);
 	} catch (error) {
-		console.error("Error saving nickname:", error);
-		res.status(500).json({ error: "Internal Server Error" });
+	  console.error('Error saving nickname and balance:', error);
+	  res.status(500).json({ error: 'Internal Server Error' });
 	}
-});
+  });
 
 app.get("/get-nickname/:ethAddress", async (req, res) => {
 	const { ethAddress } = req.params;
