@@ -1,6 +1,7 @@
 let express = require("express");
 let http = require("http");
 let { Server } = require("socket.io");
+let cookieParser = require('cookie-parser');
 
 let app = express();
 let server = http.createServer(app);
@@ -16,6 +17,8 @@ let { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
+app.use(cookieParser());
+
 
 let databaseConfig;
 
@@ -67,34 +70,33 @@ app.post("/datum", (req, res) => {
 		});
 });
 
-app.post('/save-nickname', async (req, res) => {
-    const { ethAddress, nickname, balance } = req.body;
+app.post('/save-nickname', (req, res) => {
+    const ethAddress = req.cookies.ethAddress;
+    const { nickname, balance } = req.body;
 
-    // Validate and parse inputs
-    const parsedBalance = parseFloat(balance);
-    if (!ethAddress || !nickname || isNaN(parsedBalance)) {
-        console.error('Invalid input data:', { ethAddress, nickname, balance });
-        return res.status(400).json({ error: "Invalid input data" });
+    if (!ethAddress) {
+        return res.status(400).json({ error: 'Ethereum address not found in cookies' });
     }
 
-    try {
-        const result = await pool.query(
-            `INSERT INTO users (eth_address, nickname, balance) 
-             VALUES ($1, $2, $3) 
-             ON CONFLICT (eth_address) 
-             DO UPDATE SET nickname = $2, balance = $3 
-             RETURNING *`,
-            [ethAddress, nickname, parsedBalance]
-        );
-
-        // Set the 'loggedIn' cookie upon successful login
-        res.cookie('loggedIn', true, { httpOnly: true, secure: true, sameSite: 'strict' });
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error saving nickname and balance:', error.stack);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
-    }
+    // Save the nickname and balance using the ethAddress from the cookie
+    pool.query(
+        `INSERT INTO users (eth_address, nickname, balance) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (eth_address) 
+         DO UPDATE SET nickname = $2, balance = $3 
+         RETURNING *`,
+        [ethAddress, nickname, balance],
+        (error, result) => {
+            if (error) {
+                console.error('Error saving nickname and balance:', error);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.json(result.rows[0]);
+        }
+    );
 });
+
+
 
 app.get('/api/check-login-status', (req, res) => {
     if (req.cookies.loggedIn) {
@@ -103,6 +105,30 @@ app.get('/api/check-login-status', (req, res) => {
         res.json({ loggedIn: false });
     }
 });
+
+app.get('/api/get-user-data', async (req, res) => {
+    const ethAddress = req.cookies.ethAddress; // Assuming ethAddress is stored in cookies
+
+    if (!ethAddress) {
+        return res.status(400).json({ error: 'User not logged in' });
+    }
+
+    try {
+        const result = await pool.query("SELECT nickname, balance FROM users WHERE eth_address = $1", [ethAddress]);
+        if (result.rows.length > 0) {
+            res.json({
+                nickname: result.rows[0].nickname,
+                balance: result.rows[0].balance
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 app.get("/get-nickname/:ethAddress", async (req, res) => {
 	const { ethAddress } = req.params;
