@@ -29,7 +29,11 @@ module.exports = (app, io) => {
 
 	// create "room" ie lobby
 	app.post("/create", (req, res) => {
-		let roomId = generateRoomCode();
+		let roomId;
+
+		do {
+			roomId = generateRoomCode();
+		} while (roomId in rooms);
 
 		rooms[roomId] = {};
 
