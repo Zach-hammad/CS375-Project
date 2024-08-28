@@ -81,33 +81,10 @@ module.exports = (app, io) => {
 			);
 		}
 	}
-	let userData ={};
-	async function fetchPlayerData() { 
 
-		if (!ethAddress) {
-			return res.status(400).json({ error: 'User not logged in' });
-		}
-
-		try {
-			const result = await pool.query("SELECT nickname, balance FROM users WHERE eth_address = $1", [ethAddress]);
-			if (result.rows.length > 0) {
-				res.json({
-					nickname: result.rows[0].nickname,
-					balance: result.rows[0].balance
-				});
-				userData.nickname = nickname;
-				userData.balance = balance;
-			} else {
-				res.status(404).json({ error: 'User not found' });
-			}
-		} catch (error) {
-			console.error('Error fetching user data:', error);
-			res.status(500).json({ error: 'Internal Server Error' });
-		}
-		}
-	io.on("connection", async (socket) => {
+	io.on("connection", (socket) => {
 		console.log(`Socket ${socket.id} connected`);
-		await fetchPlayerData();
+
 		// extract room ID from URL
 		// could also send a separate registration event to register a socket to a room
 		// might want to do that ^ b/c not all browsers include referer, I think
@@ -131,7 +108,6 @@ module.exports = (app, io) => {
 			rooms[roomId].game = { dealer: blackjack.initDealer(), players: {}, deck: blackjack.shuffle(1) };
 		} 
 		//console.log(JSON.stringify(rooms[roomId].game));
-		rooms[roomId].game.players[userData.nickname] = blackjack.initPlayer(userData.nickname, userData.balance, socketId);
 		let players = rooms[roomId].game.players;
 		let deck = rooms[roomId].game.deck;
 		let dealer = rooms[roomId].game.dealer;
@@ -177,6 +153,15 @@ module.exports = (app, io) => {
 				otherSocket.emit("relay", messageData);
 			}
 		});
+
+		socket.on("join", (message) => {
+			let socketId = message[0];
+			let playerName = message[1];
+			rooms[roomId].game.players[playerName] = blackjack.initPlayer(playerName, 500, socketId);
+			console.log(playerName + " init hand");
+			console.log(rooms[roomId].game);
+		});
+		
 
 		socket.on("playerReady", (message) => {
 			//message [0] = id, message[1] = name

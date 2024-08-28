@@ -59,7 +59,6 @@
     <button id="logoutButton">Logout</button>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/game.js"></script>
     <script >
         // Function to check if the user is logged in
         async function checkLoginStatus() {
@@ -124,40 +123,24 @@
             document.getElementById("betReady").disabled = true;
             document.getElementById("sideBetReady").disabled = true;
         }
-
-        // Initialize the application
-        async function initializeApp() {
-            const isLoggedIn = await checkLoginStatus();
-    
-            /*if (!isLoggedIn) {
-                alert("You must be logged in to access this page.");
-                window.location.href = "/login.html"; // Redirect to the login page
-                return;
-            }*/
-    
-            // Fetch player's nickname and balance from the server
-            const userData = await fetchPlayerData();
-            if (userData !== null) {
-                // Initialize the player in the global scope for use in game.js
-                window.player = new initPlayer(userData.nickname, userData.balance);
-                console.log('Player initialized with nickname:', userData.nickname, 'and balance:', userData.balance);
-                reset(window.player);
-            } else {
-                disableGameControls();
-            }
-        }
-    
-        // Initialize the app on page load
-        document.addEventListener("DOMContentLoaded", initializeApp);
     
         // Add event listener to logout button
         document.getElementById("logoutButton").addEventListener("click", logout);
 
         // Socket.IO connection setup
         let socket = io("https://csblackjack.fly.dev");
-    
-        socket.on("connect", () => {
-            console.log("I am connected", socket.id);
+        
+        player = {};
+
+        socket.on("connect", async () => {
+            try {
+                const userData = await fetchPlayerData();
+                console.log("I am connected", socket.id);
+                player = new initPlayer(userData.nickname, userData.balance);
+                socket.emit("join", [socket.id, userData.nickname]);
+            } catch (error) {
+                console.error("Error during connection:", error);
+            }
         });
     
         // Manage chat messages
@@ -203,5 +186,6 @@
         let roomId = pathParts[pathParts.length - 1];
         document.getElementById("lobby-code-display").textContent += ` ${roomId}`;   
     </script>   
+    <script src="/game.js"></script>
 </body>
 </html>

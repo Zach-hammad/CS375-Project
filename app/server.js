@@ -105,9 +105,9 @@ app.get('/api/check-login-status', (req, res) => {
         res.json({ loggedIn: false });
     }
 });
-let ethAddress= {};
+
 app.get('/api/get-user-data', async (req, res) => {
-    ethAddress = req.cookies.ethAddress; // Assuming ethAddress is stored in cookies
+    const ethAddress = req.cookies.ethAddress; // Assuming ethAddress is stored in cookies
 
     if (!ethAddress) {
         return res.status(400).json({ error: 'User not logged in' });

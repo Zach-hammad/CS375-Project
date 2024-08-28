@@ -1,5 +1,4 @@
 console.log("working");
-
 ////////// Initialize Variables //////////
 
 // buttons
@@ -25,9 +24,7 @@ let sideMessage = document.getElementById("sideMessage"); //confirm bet was plac
 
 let balance = document.getElementById("balance");
 
-////////// Player Initialization //////////
-
-function initPlayer(name, balance) {
+function initPlayer(name, balance){
     this.name = name;
     this.balance = balance;
     this.hands = [];
@@ -35,11 +32,11 @@ function initPlayer(name, balance) {
     this.insurance = false;
     this.bet = 0;
     this.betWon = 0;
-    this.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};  // Ensure sideBets is initialized
+    this.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
     this.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
 }
 
-function initHand() {
+function initHand(){
     this.cards = [];
     this.cardValue = 0;
     this.done = false;
@@ -47,12 +44,6 @@ function initHand() {
     this.blackjack = false;
     this.doubleDown = false;
 }
-
-////////// Fetch and Initialize Player Data //////////
-
-////////// Fetch and Initialize Player Data //////////
-
-////////// Other Game Functions //////////
 
 function getCardValue(cards){
     let cardValue = 0;
@@ -75,7 +66,29 @@ function getCardValue(cards){
     return cardValue;
 }
 
+
 ////////// Side Bets //////////
+
+/*
+Lucky Ladies - player's cards
+Any 20	                                            4 to 1 
+Suited 20	                                        9 to 1
+Matched 20 (two identical cards)	                19 to 1
+Queen of Hearts pair	                            125 to 1
+Queen of Hearts pair with Dealer Blackjack	        1000 to 1
+
+21 + 3 - player’s first two cards and the dealer’s face up card
+Flush (same suit)                                   5 to 1
+Straight (1, 2, 3)                                  10 to 1 
+Three of a kind (same card face)                    30 to 1
+Straight flush (same suit & 1, 2, 3)                40 to 1
+Suited three of a kind (same suit , same card face) 100 to 1
+
+Perfect Pairs - player's cards
+Mixed pairs                                         5 to 1
+Coloured pair                                       10 to 1
+Perfect pair                                        30 to 1
+*/
 
 function checkCards(first, second) {
     if (first.length !== second.length) return false;
@@ -162,7 +175,7 @@ function newHand(player, cards){
 
     //check for blackjack
     if (hand.cardValue >= 21){
-        endTurn(player);
+        endTurn (player);
         return;
     }
     //check for split
@@ -294,6 +307,17 @@ function hitFunction(player, card){
     return;
 } 
 
+hit.addEventListener('click', async () => {
+    socket.emit("askForCard", [socket.id , player.name]);
+    socket.once('card', (data) => {
+        let card = data;
+        console.log(player.bet);
+        console.log(card);
+        hitFunction(player,card);
+        
+        if(player.bet !== 0) sendHand(player);
+    });
+});
 ////////// End Turn //////////
 
 function checkWin (hand, dealer){
@@ -338,7 +362,7 @@ async function endTurn(player){
         socket.once('card', (data) => {
             let card = data;
             console.log(card);
-            hitFunction(player, card);
+            hitFunction(player,card);
         });  
     //else end the turn, check for a win, and reset hand
     } else {
@@ -358,48 +382,91 @@ async function endTurn(player){
             console.log(JSON.stringify(player));
             reset(player);
         });  
+
+        
     }
 }
 
-////////// Bet Functions //////////
-
-function sendBet(player, bet){
-    socket.emit('bet', [bet, player.name]);
-}
-
-function sendWin(player){
-    socket.emit('win', [player.betWon, player.name]);
-}
-
-function sendHand(player){
-    let cards = [];
-    for (let i=0; i < player.hands.length; i++){
-        cards.push(player.hands[i].cards);
-    }
-    console.log(cards);
-    socket.emit('hand', [player.name, cards]);
-}
-
-function sendDone(player){
-    socket.emit('done', [socket.id, player.name]);
-}
-
-////////// Other Event Listeners and Logic //////////
-
-hit.addEventListener('click', async () => {
-    socket.emit("askForCard", [socket.id , player.name]);
-    socket.once('card', (data) => {
-        let card = data;
-        console.log(player.bet);
-        console.log(card);
-        hitFunction(player, card);
-
-        if (player.bet !== 0) sendHand(player);
-    });
-});
+////////// Stand Functions //////////
 
 stand.addEventListener("click", () => {
     endTurn(player);
+})
+
+////////// Bet Functions //////////
+
+betReady.addEventListener("click", async() => {
+    console.log(JSON.stringify(player));
+    let betVal = document.getElementById("betValue"); //normal bet
+    player.bet = parseInt(betVal.value);
+    console.log(parseInt(betVal.value));
+    console.log(player.bet);
+
+    let totalBet= 0;
+    player.balance -= player.bet;
+    for (value of Object.values(player.sideBets)){
+        totalBet += parseInt(value); // for local running
+        //totalBet += value; // for website
+    }
+    totalBet += player.bet;
+    sendBet(player, totalBet);
+    console.log(player);
+
+    socket.emit("playerReady", [socket.id , player.name]);
+    
+    // Listen for the server's response
+    socket.once('playerData', (data) => {
+        console.log(data);
+        players = data[0];
+        dealer = data[1];
+        Object.keys(players).forEach(p => {
+            if (players[p].name === player.name) {
+                newHand(player, players[p].cards[0]);
+                checkBets(player, dealer);
+                displayDealer.textContent = dealer.cards;
+                
+                // Check for insurance
+                console.log(dealer);
+                if (dealer.cards[0][1] === "ACE") {
+                    insurance.style.display = "";
+                }
+            }
+        });
+    });
+    console.log(JSON.stringify(player));
+    return;
+    })
+
+
+sideBetReady.addEventListener("click", () => {
+    //check if side bet exists, and enter into object
+    if (player.sideBets.hasOwnProperty(sideBet.value)){
+        player.sideBets[sideBet.value] = parseInt(sideBetValue.value);
+        player.balance -= parseInt(sideBetValue.value);
+    }
+    sideMessage.textContent = "Side Bet " + sideBet.value + " confirmed for " + sideBetValue.value;
+    player.balance -= sideBetValue.value;
+    return;
+})
+
+////////// Double Functions //////////
+
+double.addEventListener("click", async () => {
+    socket.emit("askForCard", [socket.id , player.name]);
+    socket.once('card', (data) => {
+        console.log(data);
+            let card  = data;
+            //minus bet, hit, if turn not done, end turn
+            let hand = player.hands[player.handsDone];
+            player.balance -= player.bet;
+            sendBet(player, player.bet);
+            hand.doubleDown = true;
+            hitFunction(player, card);
+            if (!hand.done) endTurn(player);
+            sendHand(player);
+        });
+    
+    return;
 })
 
 ////////// Split Functions //////////
@@ -437,3 +504,25 @@ insurance.addEventListener("click", ()=>{
     sendBet(player, val);
     insurance.style.display = "none";
 })
+
+
+function sendBet(player, bet){
+    socket.emit('bet', [bet, player.name]);
+}
+
+function sendWin(player){
+    socket.emit('win', [player.betWon, player.name]);
+}
+
+function sendHand(player){
+    let cards = [];
+    for (let i=0; i < player.hands.length; i++){
+        cards.push(player.hands[i].cards);
+    }
+    console.log(cards);
+    socket.emit('hand', [player.name, cards]);
+}
+
+function sendDone(player){
+    socket.emit('done', [socket.id, player.name]);
+}
