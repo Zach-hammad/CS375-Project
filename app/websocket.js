@@ -81,10 +81,33 @@ module.exports = (app, io) => {
 			);
 		}
 	}
+	let userData ={};
+	async function fetchPlayerData() { 
 
-	io.on("connection", (socket) => {
+		if (!ethAddress) {
+			return res.status(400).json({ error: 'User not logged in' });
+		}
+
+		try {
+			const result = await pool.query("SELECT nickname, balance FROM users WHERE eth_address = $1", [ethAddress]);
+			if (result.rows.length > 0) {
+				res.json({
+					nickname: result.rows[0].nickname,
+					balance: result.rows[0].balance
+				});
+				userData.nickname = nickname;
+				userData.balance = balance;
+			} else {
+				res.status(404).json({ error: 'User not found' });
+			}
+		} catch (error) {
+			console.error('Error fetching user data:', error);
+			res.status(500).json({ error: 'Internal Server Error' });
+		}
+		}
+	io.on("connection", async (socket) => {
 		console.log(`Socket ${socket.id} connected`);
-
+		await fetchPlayerData();
 		// extract room ID from URL
 		// could also send a separate registration event to register a socket to a room
 		// might want to do that ^ b/c not all browsers include referer, I think
@@ -103,13 +126,12 @@ module.exports = (app, io) => {
 		rooms[roomId][socket.id] = socket;
 
 		//initialize in lobby
+		
 		if (!rooms[roomId].hasOwnProperty("game")) {
-			rooms[roomId].game = { dealer: blackjack.initDealer(), players: { me: blackjack.initPlayer("me", 500, socket.id) }, deck: blackjack.shuffle(1) };
-		} else {
-			rooms[roomId].game.players["you"] = blackjack.initPlayer("you", 500, socket.id);
-		}
+			rooms[roomId].game = { dealer: blackjack.initDealer(), players: {}, deck: blackjack.shuffle(1) };
+		} 
 		//console.log(JSON.stringify(rooms[roomId].game));
-
+		rooms[roomId].game.players[userData.nickname] = blackjack.initPlayer(userData.nickname, userData.balance, socketId);
 		let players = rooms[roomId].game.players;
 		let deck = rooms[roomId].game.deck;
 		let dealer = rooms[roomId].game.dealer;
