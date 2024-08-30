@@ -123,6 +123,15 @@
             document.getElementById("betReady").disabled = true;
             document.getElementById("sideBetReady").disabled = true;
         }
+        function enableGameControls() {
+            document.getElementById("hit").disabled = false;
+            document.getElementById("stand").disabled = false;
+            document.getElementById("double").disabled = false;
+            document.getElementById("split").disabled = false;
+            document.getElementById("insurance").disabled = false;
+            document.getElementById("betReady").disabled = false;
+            document.getElementById("sideBetReady").disabled = false;
+        }
     
         // Add event listener to logout button
         document.getElementById("logoutButton").addEventListener("click", logout);
@@ -142,6 +151,17 @@
                 console.error("Error during connection:", error);
             }
         });
+        let timeoutId;
+        function timer(){
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            timeoutId = setTimeout(() => {
+                socket.emit("takeTurnResponse", 'Timer ran out');
+                console.log("timer ran out");
+                disableGameControls();
+            }, 15000);
+        }
     
         // Manage chat messages
         let sendMessageButton = document.getElementById("send-message");
@@ -180,6 +200,12 @@
         socket.on("start", function (data) {
             console.log("Received message:", data);
         });
+        
+        socket.on("takeTurn", (message) => {
+				console.log("my turn");
+				timer();
+                enableGameControls();
+			});
     
         // Extract room ID from URL and display it
         let pathParts = window.location.pathname.split("/");

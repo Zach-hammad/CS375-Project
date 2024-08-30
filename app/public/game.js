@@ -308,6 +308,7 @@ function hitFunction(player, card){
 } 
 
 hit.addEventListener('click', async () => {
+    timer();
     socket.emit("askForCard", [socket.id , player.name]);
     socket.once('card', (data) => {
         let card = data;
@@ -366,6 +367,8 @@ async function endTurn(player){
         });  
     //else end the turn, check for a win, and reset hand
     } else {
+        clearTimeout(timeoutId);
+        socket.emit("takeTurnResponse", [player.name + 'turn done']);
         socket.emit("done", [socket.id , player.name]);
         socket.once('end', (data) => {
             // send the finished hand first, then wait for dealer
@@ -396,6 +399,7 @@ stand.addEventListener("click", () => {
 ////////// Bet Functions //////////
 
 betReady.addEventListener("click", async() => {
+    disableGameControls();
     console.log(JSON.stringify(player));
     let betVal = document.getElementById("betValue"); //normal bet
     player.bet = parseInt(betVal.value);
@@ -452,6 +456,7 @@ sideBetReady.addEventListener("click", () => {
 ////////// Double Functions //////////
 
 double.addEventListener("click", async () => {
+    timer();
     socket.emit("askForCard", [socket.id , player.name]);
     socket.once('card', (data) => {
         console.log(data);
@@ -473,6 +478,7 @@ double.addEventListener("click", async () => {
 
 
 split.addEventListener("click", async ()=>{
+    timer();
     socket.emit("askForCard", [socket.id , player.name]);
     socket.once('card', (data) => {
         let card  = data;
@@ -498,6 +504,7 @@ split.addEventListener("click", async ()=>{
 ////////// Insurance Functions //////////
 
 insurance.addEventListener("click", ()=>{
+    timer();
     player.insurance = true;
     let val = player.bet / 2;
     player.balance -= val;
