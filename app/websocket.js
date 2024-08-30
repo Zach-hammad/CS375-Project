@@ -29,13 +29,14 @@ module.exports = (app, io) => {
 
 	// create "room" ie lobby
 	app.post("/create", (req, res) => {
+		let { isPrivate } = req.body;
 		let roomId;
 
 		do {
 			roomId = generateRoomCode();
 		} while (roomId in rooms);
 
-		rooms[roomId] = {};
+		rooms[roomId] = { isPrivate };
 
 		return res.json({ roomId });
 	});
@@ -44,7 +45,15 @@ module.exports = (app, io) => {
 	app.get("/checkRoomId/:roomId", (req, res) => {
 		const roomId = req.params.roomId;
 
-		rooms[roomId] ? res.sendStatus(200) : res.sendStatus(404);
+		if (rooms[roomId]) {
+			if (rooms[roomId].isPrivate) {
+				return res.sendStatus(403);
+			}
+
+			return res.sendStatus(200);
+		} else {
+			return res.sendStatus(404);
+		}
 	});
 
 	app.get("/room/:roomId", (req, res) => {
@@ -66,6 +75,25 @@ module.exports = (app, io) => {
 	// if you need to do things like associate a socket with a logged in user, see
 	// https://socket.io/how-to/deal-with-cookies
 	// to see how you can fetch application cookies from the socket
+	let turn = "";
+
+	async function handlePlayerTurns(players, deck) {
+		for (const playerKey of Object.keys(players)) {
+			const player = players[playerKey];
+
+			console.log(player);
+
+			turn = playerKey; // Set the current player's turn
+
+			// Wait for 30 seconds before proceeding to the next player
+			await new Promise((resolve) =>
+				setTimeout(() => {
+					turn = "";
+					resolve();
+				}, 10000)
+			);
+		}
+	}
 
 	io.on("connection", (socket) => {
 		console.log(`Socket ${socket.id} connected`);
@@ -88,34 +116,18 @@ module.exports = (app, io) => {
 		rooms[roomId][socket.id] = socket;
 
 		//initialize in lobby
-		
 		if (!rooms[roomId].hasOwnProperty("game")) {
-			rooms[roomId].game = { dealer: blackjack.initDealer(), players: {}, deck: blackjack.shuffle(1) };
-		} 
+			rooms[roomId].game = { dealer: blackjack.initDealer(), players: { me: blackjack.initPlayer("me", 500, socket.id) }, deck: blackjack.shuffle(1) };
+		} else {
+			rooms[roomId].game.players["you"] = blackjack.initPlayer("you", 500, socket.id);
+		}
 		//console.log(JSON.stringify(rooms[roomId].game));
+
 		let players = rooms[roomId].game.players;
 		let deck = rooms[roomId].game.deck;
 		let dealer = rooms[roomId].game.dealer;
 
 		/* MUST REGISTER socket.on(event) listener FOR EVERY event CLIENT CAN SEND */
-	
-		async function takeTurns(players, s) {
-			console.log(Object.keys(players));
-			for (let name of Object.keys(players)) {
-				console.log(name);
-				const id = players[name].id; // Get the socket object for the player
-					try {
-						const response = await new Promise((resolve) => {
-							io.to(id).emit("takeTurn", "aa");
-							s.once("takeTurnResponse", (response) => {
-								console.log("received");
-								resolve(response);
-							});
-						})
-						console.log(response);	
-				} catch (error) {
-					}
-			}}
 
 		socket.on("disconnect", () => {
 			// disconnects are normal; close tab, refresh, browser freezes inactive tab, ...
@@ -157,16 +169,7 @@ module.exports = (app, io) => {
 			}
 		});
 
-		socket.on("join", (message) => {
-			let socketId = message[0];
-			let playerName = message[1];
-			rooms[roomId].game.players[playerName] = blackjack.initPlayer(playerName, 500, socketId);
-			console.log(playerName + " init hand");
-			console.log(rooms[roomId].game);
-		});
-		
-
-		socket.on("playerReady", async (message) => {
+		socket.on("playerReady", (message) => {
 			//message [0] = id, message[1] = name
 			let ready = true;
 			players[message[1]].status = "ready";
@@ -181,12 +184,14 @@ module.exports = (app, io) => {
 				Object.keys(players).forEach((player) => {
 					blackjack.newHand(players[player], deck);
 				});
+				handlePlayerTurns(players, deck).then(() => {
+					console.log("All players have had their turn.");
+				});
 
 				for (let sockets of Object.values(rooms[roomId])) {
 					console.log(`Sending message ${message} to socket ${sockets.id}`);
 					if (sockets.emit) sockets.emit("playerData", [players, dealer]);
 				}
-				await takeTurns(socket);
 			}
 		});
 		socket.on("askForCard", (message) => {
@@ -232,7 +237,7 @@ module.exports = (app, io) => {
 				Object.keys(players).forEach((player) => {
 					curBalance = players[player].balance;
 					console.log(players[player].cards);
-					players[player] = blackjack.initPlayer(player, curBalance, message[0]);
+					players[player] = blackjack.initPlayer("me", curBalance, message[0]);
 				});
 			}
 		});

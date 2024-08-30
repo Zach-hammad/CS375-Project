@@ -7,12 +7,12 @@
 	</head>
 	<body>
 		<div id="lobby-container">
-			<button id="create-lobby">Create lobby</button>
+			<button id="create-lobby">Create public lobby</button>
 			<div id="multiplayer-mode">
 				<input type="text" id="lobby-code-input" placeholder="Enter lobby code" />
 				<button id="join-lobby">Connect to Lobby</button>
 			</div>
-			<button id="singleplayer-mode">Singleplayer</button>
+			<button id="singleplayer-mode">Create private lobby</button>
 		</div>
 
 		<div id="ids"></div>
@@ -21,13 +21,18 @@
 			let createLobbyButton = document.getElementById("create-lobby");
 			let joinLobbyButton = document.getElementById("join-lobby");
 			let lobbyCodeInput = document.getElementById("lobby-code-input");
+			let singleplayerButton = document.getElementById("singleplayer-mode");
 
 			let idsDiv = document.getElementById("ids");
 
 			createLobbyButton.addEventListener("click", async () => {
-				let response = await fetch("/create", { method: "POST" });
+				let response = await fetch("/create", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ isPrivate: false }),
+				});
+
 				let { roomId } = await response.json();
-				// will redirect to new chatroom immediately
 				window.location = `/room/${roomId}`;
 			});
 
@@ -45,6 +50,17 @@
 					.catch((error) => {
 						alert(error.message);
 					});
+			});
+
+			singleplayerButton.addEventListener("click", async () => {
+				let response = await fetch("/create", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ isPrivate: true }),
+				});
+
+				let { roomId } = await response.json();
+				window.location = `/room/${roomId}`;
 			});
 		</script>
 	</body>
