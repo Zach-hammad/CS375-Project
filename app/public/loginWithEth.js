@@ -64,3 +64,20 @@ async function loginWithEth() {
       alert('No ETH browser extension detected.');
   }
 }
+
+function clearCookies() {
+    // Iterate through all the cookies and delete them
+    document.cookie.split(";").forEach(function(cookie) {
+        document.cookie = cookie.replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+}
+
+// Logout function
+function logout() {
+    clearCookies(); // Clear all cookies
+    window.location.href = "/login.html"; // Redirect to login page
+}
+
+// Add event listener to logout button
+document.getElementById("logoutButton").addEventListener("click", logout);
