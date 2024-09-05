@@ -5,7 +5,14 @@ let cookieParser = require('cookie-parser');
 
 let app = express();
 let server = http.createServer(app);
-let io = new Server(server);
+const io = new Server(server,{
+    cors:{
+        origin: "https://csblackjack.fly.dev",
+        methods: ["GET", "POST"],
+        allowedHeaders: ["my-custom-header"],
+        credentials: true
+    }
+});
 
 let port = 3000;
 let host;

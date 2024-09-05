@@ -6,6 +6,11 @@
     <title>Demo</title>
 </head>
 <body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="websocket.html">WebSocket</a>
+    </nav>
     <div class="container">
         <p>Dealer's Cards</p>
         <p id="dealer"></p>
@@ -160,7 +165,7 @@
                 socket.emit("takeTurnResponse", 'Timer ran out');
                 console.log("timer ran out");
                 disableGameControls();
-            }, 15000);
+            }, 30000);
         }
     
         // Manage chat messages

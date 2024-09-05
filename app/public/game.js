@@ -399,7 +399,7 @@ stand.addEventListener("click", () => {
 ////////// Bet Functions //////////
 
 betReady.addEventListener("click", async() => {
-    disableGameControls();
+    timer();
     console.log(JSON.stringify(player));
     let betVal = document.getElementById("betValue"); //normal bet
     player.bet = parseInt(betVal.value);
