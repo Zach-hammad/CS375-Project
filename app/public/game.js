@@ -248,8 +248,9 @@ function payout(player,dealer){
         date: new Date().toLocaleString(),
         balance: player.balance
     });
+    sendWin(player);
     console.log(balance, player.balance, player.betWon, player.bet);
-    socket.emit('updateWinnings', { name: player.name, balance: player.balance });
+
     return;
 }
 

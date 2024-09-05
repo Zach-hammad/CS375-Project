@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player Winnings</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline';">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav>
@@ -18,33 +19,44 @@
     </nav>
 
     <div id="content">
-        <h1>Player Winnings</h1>
+        <h1>Player Winnings History</h1>
         <table id="winnings-table">
             <thead>
                 <tr>
                     <th>Nickname</th>
                     <th>Balance (ETH)</th>
+                    <th>Date</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Data will be inserted here by JavaScript -->
+                <!-- Winnings data will be populated here -->
             </tbody>
         </table>
     </div>
 
     <script>
-        // Fetch and display player winnings data
+        // Function to fetch and display winnings data
         async function fetchWinnings() {
             try {
-                const response = await fetch('/api/get-winnings');
+                const response = await fetch('/api/winnings');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch winnings.');
+                }
+
                 const data = await response.json();
                 const tbody = document.querySelector('#winnings-table tbody');
-                tbody.innerHTML = ''; // Clear existing rows
+
+                // Clear existing rows before adding new data
+                tbody.innerHTML = '';
+
+                // Populate the table with data
                 data.forEach(winning => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${winning.nickname}</td>
                         <td>${winning.balance}</td>
+                        <td>${new Date(winning.date).toLocaleString()}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -53,6 +65,7 @@
             }
         }
 
+        // Call the function to fetch and display winnings
         fetchWinnings();
     </script>
 </body>

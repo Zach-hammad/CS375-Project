@@ -62,20 +62,7 @@ app.get("/", (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-app.post("/datum", (req, res) => {
-	let { datum } = req.body;
-	if (datum === undefined) {
-		return res.status(400).send({});
-	}
-	pool.query("INSERT INTO foo (datum) VALUES ($1)", [datum])
-		.then((result) => {
-			return res.send({});
-		})
-		.catch((error) => {
-			console.log(error);
-			return res.status(500).send({});
-		});
-});
+
 
 app.post('/save-nickname', (req, res) => {
     const ethAddress = req.cookies.ethAddress;
@@ -216,6 +203,24 @@ app.post('/api/withdraw', async (req, res) => {
     }
 });
 // Endpoint to get player winnings
+app.post('/api/record-winnings', async (req, res) => {
+    const { nickname, balance } = req.body;
+
+    if (!nickname || balance === undefined) {
+        return res.status(400).json({ error: 'Nickname and balance are required.' });
+    }
+
+    try {
+        await pool.query(
+            'INSERT INTO winnings (nickname, balance, date) VALUES ($1, $2, $3)',
+            [nickname, balance, new Date()]
+        );
+        res.status(200).json({ message: 'Winnings recorded successfully.' });
+    } catch (error) {
+        console.error('Error recording winnings:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 app.get('/api/winnings', async (req, res) => {
     try {
         const result = await pool.query('SELECT nickname, balance, date FROM winnings ORDER BY date DESC');
