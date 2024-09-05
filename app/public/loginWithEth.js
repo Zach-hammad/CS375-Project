@@ -31,38 +31,39 @@ async function loginWithEth() {
   }
 
   console.log('Deposit amount:', deposit);
-
+  
   if (window.ethereum) {
-      try {
-          const accounts = await window.web3.eth.getAccounts();
-          const account = accounts[0]; 
-          console.log('ETH Address:', account);
+    try {
+        const accounts = await window.web3.eth.getAccounts();
+        const account = accounts[0];
+        console.log('ETH Address:', account);
 
-          // Set the ethAddress as a cookie
-          document.cookie = `ethAddress=${account}; path=/; secure; samesite=strict`;
+        // Save the ethAddress as a cookie
+        document.cookie = `ethAddress=${encodeURIComponent(account)}; path=/; secure; samesite=strict`;
 
-          const response = await fetch('/save-nickname', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ ethAddress: account, nickname: nickname, balance: deposit }),
-          });
-          
-          if (response.ok) {
-              const result = await response.json();
-              console.log('Nickname and deposit saved:', result);
-          } else {
-              console.error('Server error:', response.status, response.statusText);
-              const errorText = await response.text();
-              console.error('Error response:', errorText);
-          }
-      } catch (error) {
-          console.error('Error fetching accounts:', error);
-      }
-  } else {
-      alert('No ETH browser extension detected.');
-  }
+        const response = await fetch('/save-nickname', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ethAddress: account, nickname: nickname, balance: deposit }),
+        });
+
+        if (response.ok) {
+            console.log('Nickname and deposit saved.');
+            // Redirect to lobby creation page
+            window.location.href = '/websocket.html';
+        } else {
+            console.error('Server error:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+        }
+    } catch (error) {
+        console.error('Error fetching accounts:', error);
+    }
+} else {
+    alert('No ETH browser extension detected.');
+}
 }
 
 function clearCookies() {

@@ -65,6 +65,23 @@ module.exports = (app, io) => {
 
 	io.on("connection", (socket) => {
 		console.log(`Socket ${socket.id} connected`);
+		socket.on('create-lobby', (roomId, callback) => {
+			if (rooms.hasOwnProperty(roomId)) {
+				return callback({ error: 'Lobby already exists.' });
+			}
+	
+			// Create a new room/lobby
+			rooms[roomId] = {
+				game: { 
+					dealer: blackjack.initDealer(), 
+					players: {}, 
+					deck: blackjack.shuffle(1) 
+				}
+			};
+			console.log(`Lobby ${roomId} created.`);
+        	callback({ success: true });
+		});
+	
 
 		// extract room ID from URL
 		// could also send a separate registration event to register a socket to a room

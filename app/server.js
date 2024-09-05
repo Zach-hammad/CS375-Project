@@ -99,11 +99,7 @@ app.post('/save-nickname', (req, res) => {
 
 
 app.get('/api/check-login-status', (req, res) => {
-    if (req.cookies.loggedIn) {
-        res.json({ loggedIn: true });
-    } else {
-        res.json({ loggedIn: false });
-    }
+    res.json({ loggedIn: !!req.cookies.loggedIn });
 });
 
 app.get('/api/get-user-data', async (req, res) => {
@@ -154,6 +150,23 @@ app.get("/data", (req, res) => {
 			console.log(error);
 			return res.status(500).send({ data: [] });
 		});
+});
+
+io.use((socket, next) => {
+    const cookieHeader = socket.handshake.headers.cookie;
+    if (!cookieHeader) {
+        return next(new Error('Authentication error: No cookies provided.'));
+    }
+
+    const cookies = require('cookie').parse(cookieHeader);
+    const ethAddress = cookies.ethAddress;
+
+    if (ethAddress) {
+        socket.ethAddress = ethAddress; // Attach ethAddress to socket object for further use
+        next();
+    } else {
+        next(new Error('Authentication error: Invalid cookie.'));
+    }
 });
 
 require("./websocket")(app, io);
