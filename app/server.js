@@ -215,6 +215,16 @@ app.post('/api/withdraw', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+// Endpoint to get player winnings
+app.get('/api/winnings', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT nickname, balance, date FROM winnings ORDER BY date DESC');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching winnings:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 
 require("./websocket")(app, io);

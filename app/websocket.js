@@ -178,6 +178,17 @@ module.exports = (app, io) => {
 			console.log(rooms[roomId].game);
 		});
 		
+		socket.on('updateWinnings', async (data) => {
+			try {
+				// Update the database with the player's winnings
+				await pool.query(
+					'INSERT INTO winnings (nickname, balance, date) VALUES ($1, $2, $3)',
+					[data.name, data.balance, new Date()]
+				);
+			} catch (error) {
+				console.error('Error updating winnings:', error);
+			}
+		});
 
 		socket.on("playerReady", async (message) => {
 			//message [0] = id, message[1] = name

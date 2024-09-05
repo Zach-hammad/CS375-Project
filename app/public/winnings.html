@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Winnings</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <span class="logo">Gamble</span>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="websocket.html">WebSocket</a>
+            <a href="winnings.html">Winnings</a>
+        </div>
+    </nav>
+
+    <div id="content">
+        <h1>Player Winnings</h1>
+        <table id="winnings-table">
+            <thead>
+                <tr>
+                    <th>Nickname</th>
+                    <th>Balance (ETH)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch and display player winnings data
+        async function fetchWinnings() {
+            try {
+                const response = await fetch('/api/get-winnings');
+                const data = await response.json();
+                const tbody = document.querySelector('#winnings-table tbody');
+                tbody.innerHTML = ''; // Clear existing rows
+                data.forEach(winning => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${winning.nickname}</td>
+                        <td>${winning.balance}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching winnings:', error);
+            }
+        }
+
+        fetchWinnings();
+    </script>
+</body>
+</html>

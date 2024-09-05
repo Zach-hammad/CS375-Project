@@ -34,6 +34,7 @@ function initPlayer(name, balance){
     this.betWon = 0;
     this.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
     this.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
+    this.winningsHistory = [];
 }
 
 function initHand(){
@@ -243,7 +244,12 @@ function payout(player,dealer){
     }}
     player.balance += balance;
     player.betWon = balance;
+    player.winningsHistory.push({
+        date: new Date().toLocaleString(),
+        balance: player.balance
+    });
     console.log(balance, player.balance, player.betWon, player.bet);
+    socket.emit('updateWinnings', { name: player.name, balance: player.balance });
     return;
 }
 
