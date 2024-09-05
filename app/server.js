@@ -175,6 +175,47 @@ io.use((socket, next) => {
         next(new Error('Authentication error: Invalid cookie.'));
     }
 });
+// Endpoint to handle balance withdrawal
+app.post('/api/withdraw', async (req, res) => {
+    const ethAddress = req.cookies.ethAddress; // Get the Ethereum address from the cookies
+    const { amount } = req.body;
+
+    // Validate request
+    if (!ethAddress) {
+        return res.status(400).json({ error: 'User not authenticated' });
+    }
+
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ error: 'Invalid withdrawal amount' });
+    }
+
+    try {
+        // Fetch the user's current balance
+        const userResult = await pool.query("SELECT balance FROM users WHERE eth_address = $1", [ethAddress]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const currentBalance = userResult.rows[0].balance;
+
+        // Check if the user has sufficient balance
+        if (amount > currentBalance) {
+            return res.status(400).json({ error: 'Insufficient balance' });
+        }
+
+        // Update the user's balance
+        const newBalance = currentBalance - amount;
+        await pool.query("UPDATE users SET balance = $1 WHERE eth_address = $2", [newBalance, ethAddress]);
+
+        // Respond with success
+        res.json({ message: `Successfully withdrew ${amount}. New balance is ${newBalance}.` });
+    } catch (error) {
+        console.error('Error updating balance:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 
 require("./websocket")(app, io);
 

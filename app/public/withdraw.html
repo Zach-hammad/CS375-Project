@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Balance</title>
+    <!-- Include Web3.js -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>Withdraw Balance</h1>
+    <form id="withdraw-form">
+        <label for="amount">Amount to Withdraw (ETH):</label>
+        <input type="number" id="amount" name="amount" min="0.01" step="0.01" required>
+        <button type="submit">Withdraw</button>
+    </form>
+    <div id="message"></div>
+
+    <script>
+        const web3 = new Web3(window.ethereum);
+
+        async function attemptWithdrawal(amount) {
+            try {
+                const accounts = await web3.eth.getAccounts();
+                const ethAddress = accounts[0]; // Use the logged-in Ethereum address
+
+                const transactionParameters = {
+                    to: ethAddress, // Withdraw to the logged-in user's address (simulate failure)
+                    from: ethAddress,
+                    value: web3.utils.toHex(web3.utils.toWei(amount.toString(), 'ether')), // Convert amount to wei
+                    gas: '21000' // Standard gas limit for a simple ETH transfer
+                };
+
+                // Attempt the transaction via MetaMask (expected to fail)
+                await web3.eth.sendTransaction(transactionParameters);
+                document.getElementById('message').innerText = `Transaction initiated! (Expected to fail)`;
+            } catch (error) {
+                console.warn('Expected transaction failure:', error);
+                document.getElementById('message').innerText = `Transaction failed as expected, proceeding with balance update.`;
+            }
+
+            // Proceed to update the balance in the database regardless of transaction outcome
+            updateDatabaseBalance(amount);
+        }
+
+        async function updateDatabaseBalance(amount) {
+            try {
+                const response = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('message').innerText += `\nServer Response: ${result.message}`;
+                } else {
+                    document.getElementById('message').innerText += `\nServer Error: ${result.error}`;
+                }
+            } catch (error) {
+                console.error('Error updating balance in the database:', error);
+                document.getElementById('message').innerText += '\nAn unexpected error occurred while updating the balance.';
+            }
+        }
+
+        // Handle the form submission
+        document.getElementById('withdraw-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const amount = document.getElementById('amount').value;
+            attemptWithdrawal(amount);
+        });
+    </script>
+</body>
+</html>
