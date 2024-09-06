@@ -129,15 +129,24 @@ module.exports = (app, io) => {
 					}
 			}}
 
-		socket.on("disconnect", () => {
-			// disconnects are normal; close tab, refresh, browser freezes inactive tab, ...
-			// want to clean up global object, or else we'll have a memory leak
-			// WARNING: sockets don't always send disconnect events
-			// so you may want to periodically clean up your room object for old socket ids
-			console.log(`Socket ${socket.id} disconnected`);
-			delete rooms[roomId][socket.id];
-		});
-
+			socket.on('disconnect', (reason) => {
+				console.log(`Socket ${socket.id} disconnected: ${reason}`);
+		
+				// Remove the socket from the rooms object
+				for (let roomId in rooms) {
+					if (rooms[roomId][socket.id]) {
+						delete rooms[roomId][socket.id]; // Remove the socket from the room
+						console.log(`Socket ${socket.id} removed from room ${roomId}`);
+		
+						// Clean up the room if it's empty
+						if (Object.keys(rooms[roomId]).length === 0) {
+							delete rooms[roomId];
+							console.log(`Room ${roomId} deleted because it is empty.`);
+						}
+						break; // Stop once the socket is found and removed
+					}
+				}
+			});
 		socket.on("message", ({ message }) => {
 			// we still have a reference to the roomId defined above
 			// b/c this function is defined inside the outer function
