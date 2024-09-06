@@ -112,15 +112,14 @@ module.exports = (app, io) => {
 
 		/* MUST REGISTER socket.on(event) listener FOR EVERY event CLIENT CAN SEND */
 	
-		async function takeTurns(players, s) {
+		async function takeTurns(players, socket) {
 			console.log(Object.keys(players));
 			for (let name of Object.keys(players)) {
 				console.log(name);
-				const id = players[name].id; // Get the socket object for the player
 					try {
 						const response = await new Promise((resolve) => {
-							io.to(id).emit("takeTurn", "aa");
-							s.once("takeTurnResponse", (response) => {
+							socket.emit("takeTurn", "aa");
+							socket.once("takeTurnResponse", (response) => {
 								console.log("received");
 								resolve(response);
 							});
@@ -204,8 +203,7 @@ module.exports = (app, io) => {
 			}
 		});
 		socket.on("askForCard", (message) => {
-			let socketId = message[0];
-			io.to(socketId).emit("card", deck.pop());
+			socket.emit("card", deck.pop());
 		});
 		socket.on("bet", (message) => {
 			let bet = message[0];
