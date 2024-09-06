@@ -593,6 +593,7 @@ function reset(player){
     player.win = -1;
     player.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
     player.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
+    player.winningsHistory = []
 
     updateSide();
     return;

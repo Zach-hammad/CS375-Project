@@ -250,6 +250,15 @@ module.exports = (app, io) => {
 				console.error('Error updating winnings:', error);
 			}
 		});
+		socket.on("disconnect", () => {
+			// disconnects are normal; close tab, refresh, browser freezes inactive tab, ...
+			// want to clean up global object, or else we'll have a memory leak
+			// WARNING: sockets don't always send disconnect events
+			// so you may want to periodically clean up your room object for old socket ids
+			console.log(`Socket ${socket.id} disconnected`);
+			delete rooms[roomId][socket.id];
+		  });
+		
 	});
 		
 };
