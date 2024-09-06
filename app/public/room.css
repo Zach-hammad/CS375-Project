@@ -324,6 +324,14 @@ body {
     height: 100vh;
 }
 
+/* Body Specific Styling */
+body {
+    display: flex;
+    flex-direction: column; /* Ensures the body is column-oriented */
+    flex: 1; /* Allows the body to fill remaining space */
+    overflow-x: hidden; /* Prevents horizontal overflow */
+    overflow-y: auto; /* Allows vertical scrolling if needed */
+}
 nav {
     background-color: #27293d;
     color: #f0f0f0;

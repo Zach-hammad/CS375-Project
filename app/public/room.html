@@ -92,11 +92,13 @@
         <div id="chat-container">
             <p id="lobby-code-display">Lobby:</p>
             <div id="messages"></div>
-            <input id="message-input" type="text" placeholder="Enter a message" />
-            <button id="send-message">Send</button>
+            <div id="input-container"> <!-- Add this container for input and button -->
+                <input id="message-input" type="text" placeholder="Enter a message" />
+                <button id="send-message">Send</button>
+            </div>
         </div>
     </div>
-
+    
     <script src="/socket.io/socket.io.js"></script>
     <script src="/game.js"></script>
     <script src="/room.js"></script>   
