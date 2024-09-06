@@ -313,14 +313,25 @@
     align-items: center;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #1a1a1d;
-    color: #f0f0f0;
+html, body {
+    margin: 0; /* Removes default margin */
+    padding: 0; /* Removes default padding */
+    height: 100%; /* Ensures the body uses full height of the viewport */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Sets default font */
+    background-color: #1a1a1d; /* Sets a consistent background color */
+    color: #f0f0f0; /* Sets a consistent text color */
+    display: flex; /* Enables flexbox layout */
+    flex-direction: column; /* Arranges elements in a column */
 }
 
+/* Body Specific Styling */
+body {
+    display: flex;
+    flex-direction: column; /* Ensures the body is column-oriented */
+    flex: 1; /* Allows the body to fill remaining space */
+    overflow-x: hidden; /* Prevents horizontal overflow */
+    overflow-y: auto; /* Allows vertical scrolling if needed */
+}
 nav {
     background-color: #27293d;
     color: #f0f0f0;
@@ -346,4 +357,64 @@ nav .logo {
     font-weight: bold;
     font-size: 1.5rem;
     color: #e0aaff;
+}
+#chat {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #2c2f3b; /* Consistent background color */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 300px; /* Ensures enough height */
+}
+
+#chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Separates messages from input */
+    position: relative;
+}
+
+#messages {
+    flex: 1;
+    overflow-y: auto; /* Allows scrolling for overflowing messages */
+    background-color: #333; /* Visible background */
+    margin-bottom: 10px;
+    color: #f0f0f0; /* Text color for readability */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#input-container {
+    display: flex; /* Flex container for input and button */
+    padding-top: 10px; /* Adds space above the input */
+    background-color: #2c2f3b; /* Matches the chat background */
+}
+
+#message-input {
+    flex: 1; /* Allows input to grow and fill available space */
+    padding: 10px;
+    margin-right: 10px; /* Space between input and button */
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #2c2f3b;
+    color: #f0f0f0;
+}
+
+#send-message {
+    width: 60px; /* Sets a fixed width for the button */
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #e0aaff; /* Button color */
+    color: #1a1a1d; /* Text color */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#send-message:hover {
+    background-color: #d18af5; /* Hover color */
 }
