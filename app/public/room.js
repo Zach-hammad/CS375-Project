@@ -75,7 +75,7 @@
         document.getElementById("logoutButton").addEventListener("click", logout);
 
         // Socket.IO connection setup
-        const socket = io('https://csblackjack.fly.dev/');
+        const socket = io('https://csblackjack.fly.dev');
 
         
         player = {};
