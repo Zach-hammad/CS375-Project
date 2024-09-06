@@ -85,6 +85,8 @@
                 const userData = await fetchPlayerData();
                 console.log("I am connected", socket.id);
                 player = new initPlayer(userData.nickname, userData.balance);
+                updateSide();
+                document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
                 socket.emit("join", [socket.id, userData.nickname]);
             } catch (error) {
                 console.error("Error during connection:", error);

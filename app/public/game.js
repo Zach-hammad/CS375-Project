@@ -9,20 +9,338 @@ let buttons = document.getElementById("buttons");
 let split = document.getElementById("split");
 let insurance = document.getElementById("insurance");
 let betReady = document.getElementById("betReady");
-let sideBetReady = document.getElementById("sideBetReady");
-
 // message fields
 let message = document.getElementById("message");
-let displayPlayer = document.getElementById("player");
-let displayDealer = document.getElementById("dealer");
 
 // bet div
 let betDisplay = document.getElementById("betDisplay");
 let sideBet = document.getElementById("sideBet"); //which side bet is selected
 let sideBetValue = document.getElementById("sideBetValue"); //value of side bet
-let sideMessage = document.getElementById("sideMessage"); //confirm bet was placed
-
 let balance = document.getElementById("balance");
+
+const undoButton = document.getElementById('undoButton');
+const imageButtons = document.querySelectorAll('.image-button');
+const mainBetButton = document.getElementById('mainBetButton');
+const sideBetButton = document.getElementById('sideBetButton');
+const mainBetSection = document.getElementById('mainBetSection');
+const sideBetSection = document.getElementById('sideBetSection');
+const sideBetSelect = document.getElementById('sideBet');
+const sideBetContainers = document.querySelectorAll('.side-bet-options');
+
+// server variables?
+let deck;
+const imageMapping = {
+    "2_HEART": "2_of_hearts.png",
+    "3_HEART": "3_of_hearts.png",
+    "4_HEART": "4_of_hearts.png",
+    "5_HEART": "5_of_hearts.png",
+    "6_HEART": "6_of_hearts.png",
+    "7_HEART": "7_of_hearts.png",
+    "8_HEART": "8_of_hearts.png",
+    "9_HEART": "9_of_hearts.png",
+    "10_HEART": "10_of_hearts.png",
+    "JACK_HEART": "jack_of_hearts.png",
+    "QUEEN_HEART": "queen_of_hearts.png",
+    "KING_HEART": "king_of_hearts.png",
+    "ACE_HEART": "ace_of_hearts.png",
+    
+    "2_DIAMOND": "2_of_diamonds.png",
+    "3_DIAMOND": "3_of_diamonds.png",
+    "4_DIAMOND": "4_of_diamonds.png",
+    "5_DIAMOND": "5_of_diamonds.png",
+    "6_DIAMOND": "6_of_diamonds.png",
+    "7_DIAMOND": "7_of_diamonds.png",
+    "8_DIAMOND": "8_of_diamonds.png",
+    "9_DIAMOND": "9_of_diamonds.png",
+    "10_DIAMOND": "10_of_diamonds.png",
+    "JACK_DIAMOND": "jack_of_diamonds.png",
+    "QUEEN_DIAMOND": "queen_of_diamonds.png",
+    "KING_DIAMOND": "king_of_diamonds.png",
+    "ACE_DIAMOND": "ace_of_diamonds.png",
+    
+    "2_CLUB": "2_of_clubs.png",
+    "3_CLUB": "3_of_clubs.png",
+    "4_CLUB": "4_of_clubs.png",
+    "5_CLUB": "5_of_clubs.png",
+    "6_CLUB": "6_of_clubs.png",
+    "7_CLUB": "7_of_clubs.png",
+    "8_CLUB": "8_of_clubs.png",
+    "9_CLUB": "9_of_clubs.png",
+    "10_CLUB": "10_of_clubs.png",
+    "JACK_CLUB": "jack_of_clubs.png",
+    "QUEEN_CLUB": "queen_of_clubs.png",
+    "KING_CLUB": "king_of_clubs.png",
+    "ACE_CLUB": "ace_of_clubs.png",
+    
+    "2_SPADE": "2_of_spades.png",
+    "3_SPADE": "3_of_spades.png",
+    "4_SPADE": "4_of_spades.png",
+    "5_SPADE": "5_of_spades.png",
+    "6_SPADE": "6_of_spades.png",
+    "7_SPADE": "7_of_spades.png",
+    "8_SPADE": "8_of_spades.png",
+    "9_SPADE": "9_of_spades.png",
+    "10_SPADE": "10_of_spades.png",
+    "JACK_SPADE": "jack_of_spades.png",
+    "QUEEN_SPADE": "queen_of_spades.png",
+    "KING_SPADE": "king_of_spades.png",
+    "ACE_SPADE": "ace_of_spades.png"
+};
+
+function dp(name, hands, location) {
+    console.log(name);
+    console.log(hands);
+
+    const playersContainer = document.getElementById(location);
+    playersContainer.innerHTML = '';
+
+    const playerDiv = document.createElement('div');
+    playerDiv.className = 'player';
+
+    const playerName = document.createElement('div');
+    playerName.className = 'player-name';
+    playerName.textContent = name;
+    playerDiv.appendChild(playerName);
+
+    const handsContainer = document.createElement('div');
+    handsContainer.className = 'player-hands';
+
+    hands.forEach((hand, index) => {
+        const handDiv = document.createElement('div');
+        handDiv.className = 'hand';
+        
+        if (hand.win === 1 && hand.cardValue == 21) {
+            handDiv.style.border = '2px solid blue';
+        } else if (hand.win === 1) {
+            handDiv.style.border = '2px solid green';
+        } else if (hand.win === 0) {
+            handDiv.style.border = '2px solid red';
+        } else if (hand.win === 2) {
+            handDiv.style.border = '2px solid yellow';
+        } else {
+            handDiv.style.border = '2px solid white';
+        }
+
+        hand.cards.forEach(card => {
+            const img = document.createElement('img');
+            const cardKey = `${card[1]}_${card[0]}`;
+            console.log(cardKey);
+            img.src = `../Playing Cards/${imageMapping[cardKey]}`;
+            img.alt = cardKey;
+            img.className = 'card-image';
+            handDiv.appendChild(img);
+        });
+
+        handsContainer.appendChild(handDiv);
+    });
+
+    playerDiv.appendChild(handsContainer);
+    playersContainer.appendChild(playerDiv);
+}
+
+function dpo(name, hands, location) {
+    console.log(name);
+    console.log(hands);
+
+    const playersContainer = document.getElementById(location);
+
+    const playerDiv = document.createElement('div');
+    playerDiv.className = 'otherPlayer';
+    playerDiv.style.height = `${68 + 72 + (68 * (hands.length - 1))}px`;
+
+    const playerName = document.createElement('div');
+    playerName.className = 'otherPlayer-name';
+    playerName.textContent = name;
+    playerDiv.appendChild(playerName);
+
+    const handsContainer = document.createElement('div');
+    handsContainer.className = 'otherPlayer-hands';
+
+    hands.forEach((hand, index) => {
+        const handDiv = document.createElement('div');
+        handDiv.className = 'hand';
+        
+        if (hand.win === 1 && hand.cardValue == 21) {
+            handDiv.style.border = '2px solid blue';
+        } else if (hand.win === 1) {
+            handDiv.style.border = '2px solid green';
+        } else if (hand.win === 0) {
+            handDiv.style.border = '2px solid red';
+        } else if (hand.win === 2) {
+            handDiv.style.border = '2px solid yellow';
+        } else {
+            handDiv.style.border = '2px solid white';
+        }
+
+        hand.cards.forEach(card => {
+            const img = document.createElement('img');
+            const cardKey = `${card[1]}_${card[0]}`;
+            console.log(cardKey);
+            img.src = `../Playing Cards/${imageMapping[cardKey]}`;
+            img.alt = cardKey;
+            img.className = 'otherCard-image';
+            handDiv.appendChild(img);
+        });
+
+        handsContainer.appendChild(handDiv);
+    });
+
+    playerDiv.appendChild(handsContainer);
+    playersContainer.appendChild(playerDiv);
+}
+
+function displayDealer(dealer) {
+    console.log(dealer.name);
+    console.log(dealer.cards);
+
+    const playersContainer = document.getElementById("dealer");
+    playersContainer.innerHTML = '';
+    
+    const dealerDiv = document.createElement('div');
+    dealerDiv.className = 'dealer';
+    
+    const dealerImage = document.createElement('img');
+    dealerImage.src = '../Extra/dealer.png';
+    dealerImage.alt = 'Dealer Image';
+    dealerImage.style.width = '80px';
+    dealerImage.style.height = 'auto';
+    
+    dealerDiv.appendChild(dealerImage);
+    
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'dealer-cards';
+
+    const handDiv = document.createElement('div');
+    handDiv.className = 'hand';
+
+    dealer.cards.forEach(card => {
+        const img = document.createElement('img');
+        const cardKey = `${card[1]}_${card[0]}`;
+        console.log(cardKey);
+        img.src = `../Playing Cards/${imageMapping[cardKey]}`;
+        img.alt = cardKey;
+        img.className = 'dealer-card-image';
+        handDiv.appendChild(img);
+    });
+    
+    if (dealer.cards.length == 1) {
+        const img = document.createElement('img');
+        const cardKey = `back.jpg`;
+        console.log(cardKey);
+        img.src = `../Extra/${cardKey}`;
+        img.alt = cardKey;
+        img.className = 'dealer-card-image';
+        handDiv.appendChild(img);
+    }
+
+    cardsContainer.appendChild(handDiv);
+    dealerDiv.appendChild(cardsContainer);
+    playersContainer.appendChild(dealerDiv);
+}
+
+function updateSide() {
+    console.log(player.sideBets);
+    document.getElementById('luckyB').textContent = `Lucky Ladies: ${player.sideBets["lucky"]}`;
+    document.getElementById('pokerB').textContent = `21+3: ${player.sideBets["poker"]}`;
+    document.getElementById('pairsB').textContent = `Perfect Pairs: ${player.sideBets["pairs"]}`;
+}
+
+let mainBetTotal = 0;
+let sideBetTotal = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+    let history = [];
+    let currentSideBet = null;
+
+    function updateMainBetTotal(amount) {
+        mainBetTotal += amount;
+        document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
+        history.push({ type: 'main', amount });
+    }
+
+    function updateSideBetTotal(amount) {
+        if (currentSideBet) {
+            player.sideBets[currentSideBet] += amount;
+            player.balance -= amount;
+            sideBetTotal += amount;
+            history.push({ type: 'side', betType: currentSideBet, amount });
+            updateSide();
+            console.log(player.sideBets);
+        }
+    }
+
+    function undoLastAction() {
+        if (history.length === 0) return;
+
+        const lastAction = history.pop();
+        if (lastAction.type === 'main') {
+            mainBetTotal -= lastAction.amount;
+            document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
+        } else if (lastAction.type === 'side') {
+            if (lastAction.betType) {
+                player.sideBets[lastAction.betType] -= lastAction.amount;
+                sideBetTotal -= lastAction.amount;
+                updateSide();
+            }
+        }
+    }
+
+    function handleImageButtonClick(event) {
+        const amount = parseFloat(event.target.getAttribute('data-value'));
+        if (mainBetSection.style.display !== 'none') {
+            updateMainBetTotal(amount);
+        } else if (currentSideBet) {
+            updateSideBetTotal(amount);
+        }
+    }
+
+    document.querySelectorAll('.image-button').forEach(image => {
+        image.addEventListener('click', handleImageButtonClick);
+    });
+    document.getElementById('mainBetButton').style.display = 'none';
+
+    function switchBetSection(isMainBet) {
+        if (isMainBet) {
+            mainBetSection.style.display = 'block';
+            document.getElementById('mainBetButton').style.display = 'none';
+            sideBetSection.style.display = 'none';
+            document.getElementById('sideBetButton').style.display = 'block';
+        } else {
+            mainBetSection.style.display = 'none';
+            document.getElementById('mainBetButton').style.display = 'block';
+            sideBetSection.style.display = 'block';
+            document.getElementById('sideBetButton').style.display = 'none';
+        }
+    }
+
+    function showSideBetOptions() {
+        const selectedBet = sideBetSelect.value;
+        currentSideBet = selectedBet;
+
+        const sideBetContainers = document.querySelectorAll('.side-bet-options');
+        sideBetContainers.forEach(container => {
+            container.style.display = 'none';
+        });
+
+        if (selectedBet) {
+            document.getElementById('sideBetImageContainer').style.display = 'block';
+        }
+    }
+
+    mainBetButton.addEventListener('click', () => {
+        switchBetSection(true);
+    });
+
+    sideBetButton.addEventListener('click', () => {
+        switchBetSection(false);
+    });
+
+    sideBetSelect.addEventListener('change', showSideBetOptions);
+
+    undoButton.addEventListener('click', () => {
+        undoLastAction();
+    });
+});
 
 function initPlayer(name, balance){
     this.name = name;
@@ -41,7 +359,7 @@ function initHand(){
     this.cards = [];
     this.cardValue = 0;
     this.done = false;
-    this.win = 0;
+    this.win = -1;
     this.blackjack = false;
     this.doubleDown = false;
 }
@@ -164,8 +482,6 @@ function newHand(player, cards){
     buttons.style.display = "block";
     double.style.display = "block";
     betDisplay.style.display = "none";
-    message.textContent = "";
-    buttons.style.display = "block";
     console.log(cards);
 
     player.hands = [];
@@ -184,7 +500,7 @@ function newHand(player, cards){
         split.style.display = "";
     } else split.style.display = "none";
 
-    displayPlayer.textContent = hand.cards;
+    dp(player.name, player.hands, "player");
     console.log(player.bet);
 
     return;
@@ -257,24 +573,28 @@ function payout(player,dealer){
 ////////// Reset //////////
 
 function reset(player){
+    document.getElementById('mainBetBalance').textContent = `Bet: 0`;
+    mainBetTotal = 0;
+    sideBetTotal = 0;
     //hide/unhide
     buttons.style.display = "none";
     split.style.display = "none";
     insurance.style.display = "none";
     betDisplay.style.display = "";
-    sideMessage.textContent = "";
 
-    balance.textContent = player.balance;
 
+    balance.textContent = ' Balance: ' + player.balance;
     //reset everything
     player.hands = [];
     player.handsDone = 0;
     player.insurance = false;
     player.bet = 0;
     player.betWon = 0;
+    player.win = -1;
     player.sideBets = {"lucky": 0, "poker": 0, "pairs": 0};
     player.sideWon = {"lucky": 0, "poker": 0, "pairs": 0};
 
+    updateSide();
     return;
 }
 
@@ -290,7 +610,7 @@ function hitFunction(player, card){
     //add a new card to active hand
     value = getCardValue(hand.cards);
     hand.cardValue = value;
-    displayPlayer.textContent = hand.cards;
+    dp(player.name, player.hands, "player");
 
     //no more double down
     if(hand.cards.length > 2){
@@ -333,26 +653,21 @@ function checkWin (hand, dealer){
     if ((hand.cardValue == 21) && !(dealer.cardValue === 21)) {
         hand.win = 1;
         hand.blackjack = true;
-        message.textContent = "Blackjack!";
     }
     //check for dealer bust
     else if ((hand.cardValue < 21) && (dealer.cardValue > 21)) {
         hand.win = 1;
-        message.textContent = "Win";
     }
     //check if player > dealer and player <= 21
     else if ((hand.cardValue > dealer.cardValue) && (hand.cardValue <= 21)) {
         hand.win = 1;
-        message.textContent = "Win";
     }
     //check if player == dealer, and nobody busts
     else if ((hand.cardValue === dealer.cardValue) && (dealer.cardValue <= 21)) {
         hand.win = 2;
-        message.textContent = "Draw";
     }
     else {
         hand.win = 0;
-        message.textContent = "Lose";
     }
     return;
 }
@@ -382,9 +697,10 @@ async function endTurn(player){
             console.log(data);
             dealer = data;
             console.log(dealer);
-            displayDealer.textContent = dealer.cards;
+            displayDealer(dealer);            
             for (let i = 0; i < player.hands.length; i++){
                 checkWin(player.hands[i], dealer);
+                dp(player.name, player.hands, "player");
             }
             console.log(JSON.stringify(player));
             payout(player, dealer);
@@ -408,18 +724,8 @@ stand.addEventListener("click", () => {
 betReady.addEventListener("click", async() => {
     timer();
     console.log(JSON.stringify(player));
-    let betVal = document.getElementById("betValue"); //normal bet
-    player.bet = parseInt(betVal.value);
-    console.log(parseInt(betVal.value));
-    console.log(player.bet);
-
-    let totalBet= 0;
-    player.balance -= player.bet;
-    for (value of Object.values(player.sideBets)){
-        totalBet += parseInt(value); // for local running
-        //totalBet += value; // for website
-    }
-    totalBet += player.bet;
+    player.bet = mainBetTotal;
+    let totalBet = mainBetTotal + sideBetTotal;
     sendBet(player, totalBet);
     console.log(player);
 
@@ -430,11 +736,11 @@ betReady.addEventListener("click", async() => {
         console.log(data);
         players = data[0];
         dealer = data[1];
+        displayDealer(dealer)
         Object.keys(players).forEach(p => {
             if (players[p].name === player.name) {
                 newHand(player, players[p].cards[0]);
                 checkBets(player, dealer);
-                displayDealer.textContent = dealer.cards;
                 
                 // Check for insurance
                 console.log(dealer);
@@ -447,18 +753,6 @@ betReady.addEventListener("click", async() => {
     console.log(JSON.stringify(player));
     return;
     })
-
-
-sideBetReady.addEventListener("click", () => {
-    //check if side bet exists, and enter into object
-    if (player.sideBets.hasOwnProperty(sideBet.value)){
-        player.sideBets[sideBet.value] = parseInt(sideBetValue.value);
-        player.balance -= parseInt(sideBetValue.value);
-    }
-    sideMessage.textContent = "Side Bet " + sideBet.value + " confirmed for " + sideBetValue.value;
-    player.balance -= sideBetValue.value;
-    return;
-})
 
 ////////// Double Functions //////////
 
@@ -502,7 +796,7 @@ split.addEventListener("click", async ()=>{
         hitFunction(player, card);
         sendBet(player, player.bet);
 
-        displayPlayer.textContent = first.cards;
+        dp(player.name, player.hands, "player");
         sendHand(player);
     });
     return;
