@@ -52,7 +52,7 @@ async function loginWithEth() {
         if (response.ok) {
             console.log('Nickname and deposit saved.');
             // Redirect to lobby creation page
-            //window.location.href = '/websocket.html';
+            window.location.href = '/websocket.html';
         } else {
             console.error('Server error:', response.status, response.statusText);
             const errorText = await response.text();
