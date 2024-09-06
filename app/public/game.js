@@ -689,9 +689,7 @@ async function endTurn(player){
         });  
     //else end the turn, check for a win, and reset hand
     } else {
-        clearTimeout(timeoutId);
-        socket.emit("takeTurnResponse", [player.name + 'turn done']);
-        socket.emit("done", [socket.id , player.name]);
+        socket.emit("done", [player.name]);
         socket.once('end', (data) => {
             // send the finished hand first, then wait for dealer
             console.log(data);
@@ -706,6 +704,7 @@ async function endTurn(player){
             payout(player, dealer);
             sendWin(player);
             console.log(JSON.stringify(player));
+            sendUpdate(player.name, "done")
             reset(player);
         });  
 
@@ -721,7 +720,7 @@ stand.addEventListener("click", () => {
 
 ////////// Bet Functions //////////
 
-betReady.addEventListener("click", async() => {
+betReady.addEventListener("click", () => {
     console.log(JSON.stringify(player));
     player.bet = mainBetTotal;
     let totalBet = mainBetTotal + sideBetTotal;
@@ -748,9 +747,8 @@ betReady.addEventListener("click", async() => {
                 }
             }
         });
+        sendUpdate(player,"bet");
     });
-    
-    sendUpdate(player,"bet");
     console.log(JSON.stringify(player));
     return;
     })

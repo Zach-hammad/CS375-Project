@@ -58,8 +58,6 @@ function disableGameControls() {
     document.getElementById("double").disabled = true;
     document.getElementById("split").disabled = true;
     document.getElementById("insurance").disabled = true;
-    document.getElementById("betReady").disabled = true;
-    document.getElementById("sideBetReady").disabled = true;
 }
 function enableGameControls() {
     document.getElementById("hit").disabled = false;
@@ -67,25 +65,22 @@ function enableGameControls() {
     document.getElementById("double").disabled = false;
     document.getElementById("split").disabled = false;
     document.getElementById("insurance").disabled = false;
-    document.getElementById("betReady").disabled = false;
-    document.getElementById("sideBetReady").disabled = false;
 }
 
 document.getElementById("logoutButton").addEventListener("click", logout);
 
-        const userData = await fetchPlayerData();
         // Socket.IO connection setup
         let socket = io("https://csblackjack.fly.dev");
         
         player = {};
 
-        player = new initPlayer(userData.nickname, userData.balance);
-        updateSide();
-        document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
-
         socket.on("connect", async () => {
             try {
+                const userData = await fetchPlayerData();
                 console.log("I am connected", socket.id);
+                player = new initPlayer(userData.nickname, userData.balance);
+                updateSide();
+                document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
                 socket.emit("join", [userData.nickname]);
             } catch (error) {
                 console.error("Error during connection:", error);

@@ -217,7 +217,7 @@ module.exports = (app, io) => {
 		});
 		socket.on("done", (message) => {
 			let done = true;
-			let playerName = message[1];
+			let playerName = message[0];
 			console.log(players[playerName]);
 			players[playerName].status = "done";
 			Object.keys(players).forEach((player) => {
@@ -234,7 +234,7 @@ module.exports = (app, io) => {
 				Object.keys(players).forEach((player) => {
 					curBalance = players[player].balance;
 					console.log(players[player].cards);
-					players[player] = blackjack.initPlayer(player, curBalance, message[0]);
+					players[player] = blackjack.initPlayer(player, curBalance);
 				});
 			}
 		});
