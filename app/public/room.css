@@ -1,10 +1,71 @@
-/* General Body and Navigation Styling */
+.dealer-card-image {
+    width: 60px;
+    height: auto;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+#dealer {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+.dealer {
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.dealer-cards {
+    display: flex;
+    justify-content: center;
+}
+
+#betDisplay {
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.form-group {
+    margin: 15px 0;
+}
+
+#imageContainer {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+#sideBetImages {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.image-button {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.image-button:hover {
+    transform: scale(1.1);
+}
+
 html, body {
     height: 100%;
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #1a1a1d;
-    color: #f0f0f0;
+    font-family: Arial, sans-serif;
 }
 
 body {
@@ -14,39 +75,6 @@ body {
     margin: 0;
 }
 
-nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    background-color: #27293d;
-    color: #f0f0f0;
-    padding: 1rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 2px solid #444;
-    z-index: 1000;
-    width: 100%;
-}
-
-nav a, nav button {
-    color: #f0f0f0;
-    text-decoration: none;
-    margin-right: 15px;
-    transition: color 0.3s;
-}
-
-nav a:hover {
-    color: #e0aaff;
-}
-
-nav .logo {
-    font-weight: bold;
-    font-size: 1.5rem;
-    color: #e0aaff;
-}
-
-/* Container and Section Styling */
 .container {
     flex: 2;
     display: flex;
@@ -74,50 +102,50 @@ nav .logo {
 .dealer, .player, .otherPlayer {
     border: 2px solid #005700;
     padding: 10px;
-    border-radius: 12px;
+    border-radius: 6px;
     background-color: #004d00;
     color: #fff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     text-align: center;
+    width: 150px;
     display: flex;
     flex-direction: column;
+    min-height: 100px;
+    overflow: auto;
 }
 
-.dealer-card-image, .card-image, .otherCard-image {
-    width: 60px;
-    height: auto;
-    border: 1px solid #fff;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.player-name, .otherPlayer-name {
+.otherPlayer-name {
     font-size: 1.5em;
     font-weight: bold;
     margin-bottom: 10px;
 }
 
-.hand, .player-cards, .otherPlayer-hands {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    padding: 6px;
-}
-
-#dealer, .dealer-cards {
-    display: flex;
-    justify-content: center;
-    margin: 20px;
-}
-
-#betDisplay {
-    margin: 20px auto;
-    max-width: 600px;
-    text-align: center;
+.otherPlayer-hands {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    gap: 10px;
+}
+
+#buttons, #betDisplay {
+    margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    .container, #otherPlayers, #chat {
+        flex: 1;
+    }
+}
+
+.otherCard-image {
+    width: 35px;
+    height: auto;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 #balanceDisplay {
@@ -127,7 +155,7 @@ nav .logo {
     gap: 15px;
     padding: 15px;
     border-radius: 10px;
-    background-color: #2c2f3b;
+    background-color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 90%;
     box-sizing: border-box;
@@ -152,141 +180,63 @@ nav .logo {
     padding: 8px 16px;
     border: none;
     border-radius: 5px;
-    background-color: #e0aaff;
-    color: #1a1a1d;
+    background-color: #007bff;
+    color: white;
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 #balanceDisplay button:hover {
-    background-color: #d18af5;
+    background-color: #0056b3;
 }
 
-/* Form and Button Styling */
-.form-group {
-    margin: 15px 0;
-}
-
-.image-button {
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.image-button:hover {
-    transform: scale(1.1);
-}
-
-input[type="text"], input[type="number"] {
-    padding: 0.75rem;
-    width: 80%;
-    max-width: 400px;
-    margin: 0 auto;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background-color: #2c2f3b;
-    color: #f0f0f0;
-    text-align: center;
-    display: block;
-}
-
-button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #e0aaff;
-    color: #1a1a1d;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 1rem;
-    display: block;
-    width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-button:hover {
-    background-color: #d18af5;
-}
-
-/* Chat Styling */
-#chat {
-    flex: 1;
+#player {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
     padding: 20px;
-    box-sizing: border-box;
-    background-color: #2c2f3b;
+}
+
+.player {
+    border: 2px solid #005700;
+    padding: 10px;
+    border-radius: 12px;
+    background-color: #004d00;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    width: 250px;
+    text-align: center;
+}
+
+.player-name {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.player-cards {
     display: flex;
     flex-direction: column;
-    position: relative;
-    margin-top: 20px;
+    gap: 10px;
 }
 
-#chat #message-input, #chat #send-message {
-    position: absolute;
-    bottom: 20px;
-    width: calc(100% - 40px);
-    box-sizing: border-box;
+.hand {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    padding: 6px;
 }
 
-#chat #send-message {
-    bottom: 10px;
-    width: auto;
-}
-
-#log {
-    margin-top: 2rem;
-    padding: 1rem;
-    background-color: #2c2f3b;
-    border-radius: 4px;
-    text-align: left;
-    max-width: 800px;
-    margin: 2rem auto;
-    color: #f0f0f0;
-}
-
-/* Table Styling */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1.5rem 0;
-    background-color: #2c2f3b;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid #444;
-}
-
-th, td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #444;
-}
-
-th {
-    background-color: #333;
-    color: #e0aaff;
-    font-weight: bold;
-}
-
-td {
-    color: #f0f0f0;
-}
-
-tr:hover {
-    background-color: #3b3b4f;
-}
-
-/* Media Queries for Responsive Design */
-@media (max-width: 768px) {
-    body {
-        flex-direction: column;
-    }
-
-    .container, #otherPlayers, #chat {
-        flex: 1;
-    }
+.card-image {
+    width: 50px;
+    height: auto;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 @media (min-width: 600px) {
@@ -305,4 +255,88 @@ tr:hover {
     .card-image {
         width: calc(25% - 10px);
     }
+}
+
+#chat {
+    flex: 1; /* This takes up 1/3 of the width */
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #f0f0f0; /* Optional: for better visibility */
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Ensure position:absolute works for child elements */
+}
+
+#updates {
+    flex: 0.7; /* Takes up the top half */
+    overflow: auto; /* Adds scroll if the content overflows */
+    background-color: #e0e0e0; /* Optional: for visibility */
+}
+
+#chat-container {
+    flex: 1; /* Takes up the bottom half */
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Allows absolute positioning of children */
+}
+
+#messages {
+    flex: 1; /* Takes up the available space above the input and button */
+    overflow-y: auto; /* Adds a vertical scrollbar if messages overflow */
+    background-color: #fff; /* Optional: for better visibility */
+    margin-bottom: 10px; /* Spacing between messages and input */
+}
+
+#message-input {
+    position: absolute;
+    bottom: 20px; /* Adjust to fit above the button */
+    left: 0;
+    width: calc(100% - 60px); /* Adjust for button width and padding */
+    box-sizing: border-box;
+}
+
+#send-message {
+    position: absolute;
+    bottom: 10px; /* Adjust as needed */
+    right: 0;
+    width: auto;
+}
+
+#undoButton {
+    margin: 0 auto;
+    display: block;
+    background-color: #007bff;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#undoButton:hover {
+    background-color: #0056b3;
+}
+
+#betDisplay {
+    margin: 20px auto;
+    max-width: 600px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+nav {
+    position: fixed; /* Fixes the navbar to the viewport */
+    top: 0; /* Aligns it to the top */
+    left: 0; /* Aligns it to the left */
+    background-color: #333; /* Background color for visibility */
+    color: white; /* Text color */
+    padding: 10px; /* Space around the text */
+    z-index: 1000; /* Makes sure it's on top of other elements */
+    width: 100%; /* Full width of the viewport */
+}
+
+nav a, nav button {
+    color: white; /* Text color for links and buttons */
+    text-decoration: none; /* Removes underline from links */
+    margin-right: 15px; /* Space between items */
 }

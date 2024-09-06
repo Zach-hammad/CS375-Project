@@ -129,24 +129,15 @@ module.exports = (app, io) => {
 					}
 			}}
 
-			socket.on('disconnect', (reason) => {
-				console.log(`Socket ${socket.id} disconnected: ${reason}`);
-		
-				// Remove the socket from the rooms object
-				for (let roomId in rooms) {
-					if (rooms[roomId][socket.id]) {
-						delete rooms[roomId][socket.id]; // Remove the socket from the room
-						console.log(`Socket ${socket.id} removed from room ${roomId}`);
-		
-						// Clean up the room if it's empty
-						if (Object.keys(rooms[roomId]).length === 0) {
-							delete rooms[roomId];
-							console.log(`Room ${roomId} deleted because it is empty.`);
-						}
-						break; // Stop once the socket is found and removed
-					}
-				}
-			});
+		socket.on("disconnect", () => {
+			// disconnects are normal; close tab, refresh, browser freezes inactive tab, ...
+			// want to clean up global object, or else we'll have a memory leak
+			// WARNING: sockets don't always send disconnect events
+			// so you may want to periodically clean up your room object for old socket ids
+			console.log(`Socket ${socket.id} disconnected`);
+			delete rooms[roomId][socket.id];
+		});
+
 		socket.on("message", ({ message }) => {
 			// we still have a reference to the roomId defined above
 			// b/c this function is defined inside the outer function
@@ -177,11 +168,29 @@ module.exports = (app, io) => {
 				otherSocket.emit("relay", messageData);
 			}
 		});
+		socket.on("update", ({ message }) => {
+			console.log(message);
+			const name = message[0];
+			const update = message[1];
+
+			console.log(message);
+			for (let [key, otherSocket] of Object.entries(rooms[roomId])) {
+				if (key === "game" || typeof otherSocket.emit !== "function") {
+					continue;
+				}
+
+				if (otherSocket.id === socket.id) {
+					continue;
+				}
+
+				console.log(`Sending message ${message} to socket ${otherSocket.id}`);
+				otherSocket.emit("update", [name,update]);
+			}
+		});
 
 		socket.on("join", (message) => {
-			let socketId = message[0];
-			let playerName = message[1];
-			rooms[roomId].game.players[playerName] = blackjack.initPlayer(playerName, 500, socketId);
+			let playerName = message[0];
+			rooms[roomId].game.players[playerName] = blackjack.initPlayer(playerName, 500);
 			console.log(playerName + " init hand");
 			console.log(rooms[roomId].game);
 		});
@@ -189,10 +198,9 @@ module.exports = (app, io) => {
 		
 
 		socket.on("playerReady", async (message) => {
-			//message [0] = id, message[1] = name
 			let ready = true;
-			players[message[1]].status = "ready";
-			players[message[1]].id = message[0];
+			players[message[0]].status = "ready";
+
 
 			Object.keys(players).forEach((player) => {
 				if (players[player].status !== "ready") ready = false;
@@ -208,7 +216,6 @@ module.exports = (app, io) => {
 					console.log(`Sending message ${message} to socket ${sockets.id}`);
 					if (sockets.emit) sockets.emit("playerData", [players, dealer]);
 				}
-				await takeTurns(socket);
 			}
 		});
 		socket.on("askForCard", (message) => {
