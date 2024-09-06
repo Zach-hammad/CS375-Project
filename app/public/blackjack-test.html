@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <link rel="stylesheet" href="/room.css">
+</head>
+<body>
+    <div id="otherPlayers"></div>
+    
+    <div class="container">
+        <div id="dealer"></div>
+
+        <div id="buttons">
+            <button id="hit">HIT</button>
+            <button id="stand">STAND</button>
+            <button id="double">DOUBLE DOWN</button>
+        </div>
+        
+        <button id="split">SPLIT</button>
+        <button id="insurance">INSURANCE</button>
+
+        <div id="player"></div>
+        <div id="betDisplay">
+            <!-- Balance Display -->
+            <div id="balanceDisplay">
+                <p id="balance"></p>
+                <p id="mainBetBalance">Main Bet Balance: 0</p>
+                <p id="luckyB"></p>
+                <p id="pokerB"></p>
+                <p id="pairsB"></p>
+            </div>
+        
+            <!-- Buttons to Select Bet Type -->
+            <button id="betReady">Ready</button>
+            <button id="mainBetButton">Main Bet</button>
+            <button id="sideBetButton">Side Bet</button>
+        
+            <!-- Main Bet Section -->
+            <div id="mainBetSection">
+                <div>
+                    <label for="betAmount">Select Bet Amount:</label>
+                </div>
+                <div id="imageContainer">
+                    <img src="Extra/ten.png" alt="Bet Image 1" class="image-button" data-value="10">
+                    <img src="Extra/twentyfive.png" alt="Bet Image 2" class="image-button" data-value="25">
+                    <img src="Extra/fifty.png" alt="Bet Image 3" class="image-button" data-value="50">
+                    <img src="Extra/hundred.png" alt="Bet Image 4" class="image-button" data-value="100">
+                    <img src="Extra/fivehundred.png" alt="Bet Image 5" class="image-button" data-value="500">
+                </div>
+            </div>
+        
+            <!-- Side Bet Section -->
+            <div id="sideBetSection" style="display: none;">
+                <div class="form-group">
+                    <label for="sideBet">Select Side Bet:</label>
+                    <select id="sideBet" name="sideBet" required>
+                        <option value="" disabled selected>Select a side bet</option>
+                        <option value="lucky">Lucky Ladies</option>
+                        <option value="poker">21+3</option>
+                        <option value="pairs">Perfect Pairs</option>
+                    </select>
+                </div>
+                <div id="sideBetImageContainer">
+                    <div id="sideBetImages">
+                        <img src="Extra/ten.png" alt="Bet Image 1" class="image-button" data-value="10">
+                        <img src="Extra/twentyfive.png" alt="Bet Image 2" class="image-button" data-value="25">
+                        <img src="Extra/fifty.png" alt="Bet Image 3" class="image-button" data-value="50">
+                        <img src="Extra/hundred.png" alt="Bet Image 4" class="image-button" data-value="100">
+                        <img src="Extra/fivehundred.png" alt="Bet Image 5" class="image-button" data-value="500">
+                    </div>
+                </div>
+            </div>
+            <button id="undoButton">undo</button>
+        </div>
+</div>
+
+    <div id="chat">
+        <div id="updates"></div>
+        <div id="chat-container">
+            <p id="lobby-code-display">Lobby:</p>
+            <div id="messages"></div>
+            <input id="message-input" type="text" placeholder="Enter a message" />
+            <button id="send-message">Send</button>
+        </div>
+    </div>
+    <script src="blackjack-test.js"></script>
+</body>
+</html>
+

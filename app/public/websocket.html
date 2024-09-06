@@ -123,6 +123,7 @@
         let createLobbyButton = document.getElementById("create-lobby");
         let joinLobbyButton = document.getElementById("join-lobby");
         let lobbyCodeInput = document.getElementById("lobby-code-input");
+        let singlePlayer = document.getElementById("singleplayer-mode");
 
         let idsDiv = document.getElementById("ids");
 
@@ -148,6 +149,9 @@
                     alert(error.message);
                 });
         });
+        singlePlayer.addEventListener("click", ()=>{
+            window.location = `/blackjack-test.html`;
+        })
     </script>
 </body>
 </html>
