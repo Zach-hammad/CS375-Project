@@ -110,43 +110,7 @@ module.exports = (app, io) => {
 		let deck = rooms[roomId].game.deck;
 		let dealer = rooms[roomId].game.dealer;
 
-		/* MUST REGISTER socket.on(event) listener FOR EVERY event CLIENT CAN SEND */
-	
-		async function takeTurns(players, socket) {
-			console.log(Object.keys(players));
-			for (let name of Object.keys(players)) {
-				console.log(name);
-					try {
-						const response = await new Promise((resolve) => {
-							socket.emit("takeTurn", "aa");
-							socket.once("takeTurnResponse", (response) => {
-								console.log("received");
-								resolve(response);
-							});
-						})
-						console.log(response);	
-				} catch (error) {
-					}
-			}}
 
-			socket.on('disconnect', (reason) => {
-				console.log(`Socket ${socket.id} disconnected: ${reason}`);
-		
-				// Remove the socket from the rooms object
-				for (let roomId in rooms) {
-					if (rooms[roomId][socket.id]) {
-						delete rooms[roomId][socket.id]; // Remove the socket from the room
-						console.log(`Socket ${socket.id} removed from room ${roomId}`);
-		
-						// Clean up the room if it's empty
-						if (Object.keys(rooms[roomId]).length === 0) {
-							delete rooms[roomId];
-							console.log(`Room ${roomId} deleted because it is empty.`);
-						}
-						break; // Stop once the socket is found and removed
-					}
-				}
-			});
 
 		socket.on("message", ({ message }) => {
 			// we still have a reference to the roomId defined above

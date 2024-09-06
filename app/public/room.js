@@ -73,36 +73,24 @@ function enableGameControls() {
 
 document.getElementById("logoutButton").addEventListener("click", logout);
 
+        const userData = await fetchPlayerData();
         // Socket.IO connection setup
         let socket = io("https://csblackjack.fly.dev");
         
         player = {};
 
+        player = new initPlayer(userData.nickname, userData.balance);
+        updateSide();
+        document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
+
         socket.on("connect", async () => {
             try {
-                const userData = await fetchPlayerData();
                 console.log("I am connected", socket.id);
-                player = new initPlayer(userData.nickname, userData.balance);
-                updateSide();
-                document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
-                reset(player);
                 socket.emit("join", [userData.nickname]);
             } catch (error) {
                 console.error("Error during connection:", error);
             }
         });
-        let timeoutId;
-        function timer(){
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-            timeoutId = setTimeout(() => {
-                socket.emit("takeTurnResponse", 'Timer ran out');
-                console.log("timer ran out");
-                disableGameControls();
-            }, 30000);
-        }
-    
         // Manage chat messages
         let sendMessageButton = document.getElementById("send-message");
         let messageInput = document.getElementById("message-input");
@@ -151,11 +139,6 @@ document.getElementById("logoutButton").addEventListener("click", logout);
             console.log("Received message:", data);
         });
         
-        socket.on("takeTurn", (message) => {
-				console.log("my turn");
-				timer();
-                enableGameControls();
-			});
     
         // Extract room ID from URL and display it
         let pathParts = window.location.pathname.split("/");

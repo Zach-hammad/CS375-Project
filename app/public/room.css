@@ -319,6 +319,9 @@ body {
     padding: 0;
     background-color: #1a1a1d;
     color: #f0f0f0;
+    display: flex;
+    flex-direction: row; /* Horizontal layout */
+    height: 100vh;
 }
 
 nav {
@@ -329,6 +332,14 @@ nav {
     align-items: center;
     justify-content: space-between;
     border-bottom: 2px solid #444;
+    position: fixed; /* Fixes the navbar to the viewport */
+    top: 0; /* Aligns it to the top */
+    left: 0; /* Aligns it to the left */
+    background-color: #333; /* Background color for visibility */
+    color: white; /* Text color */
+    padding: 10px; /* Space around the text */
+    z-index: 1000; /* Makes sure it's on top of other elements */
+    width: 100%; /* Full width of the viewport */
 }
 
 nav a {
@@ -336,6 +347,7 @@ nav a {
     margin-right: 1.5rem;
     text-decoration: none;
     transition: color 0.3s;
+    
 }
 
 nav a:hover {
@@ -346,4 +358,27 @@ nav .logo {
     font-weight: bold;
     font-size: 1.5rem;
     color: #e0aaff;
+}
+.sideBetButton, .logoutButton{
+    width: 125px;
+}
+
+button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #e0aaff;
+    color: #1a1a1d;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
+    display: block;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button:hover {
+    background-color: #d18af5;
 }

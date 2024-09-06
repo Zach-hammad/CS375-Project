@@ -635,7 +635,6 @@ function hitFunction(player, card){
 } 
 
 hit.addEventListener('click', async () => {
-    timer();
     socket.emit("askForCard", [socket.id , player.name]);
     socket.once('card', (data) => {
         let card = data;
@@ -723,8 +722,6 @@ stand.addEventListener("click", () => {
 ////////// Bet Functions //////////
 
 betReady.addEventListener("click", async() => {
-    sendUpdate(player,"bet");
-    timer();
     console.log(JSON.stringify(player));
     player.bet = mainBetTotal;
     let totalBet = mainBetTotal + sideBetTotal;
@@ -752,6 +749,8 @@ betReady.addEventListener("click", async() => {
             }
         });
     });
+    
+    sendUpdate(player,"bet");
     console.log(JSON.stringify(player));
     return;
     })
@@ -759,7 +758,6 @@ betReady.addEventListener("click", async() => {
 ////////// Double Functions //////////
 
 double.addEventListener("click", async () => {
-    timer();
     socket.emit("askForCard", [socket.id , player.name]);
     socket.once('card', (data) => {
         console.log(data);
@@ -782,7 +780,6 @@ double.addEventListener("click", async () => {
 
 
 split.addEventListener("click", async ()=>{
-    timer();
     socket.emit("askForCard", [socket.id , player.name]);
     socket.once('card', (data) => {
         let card  = data;
@@ -809,7 +806,6 @@ split.addEventListener("click", async ()=>{
 ////////// Insurance Functions //////////
 
 insurance.addEventListener("click", ()=>{
-    timer();
     player.insurance = true;
     let val = player.bet / 2;
     player.balance -= val;
