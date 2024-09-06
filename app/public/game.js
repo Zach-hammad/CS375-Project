@@ -644,6 +644,7 @@ hit.addEventListener('click', async () => {
         hitFunction(player,card);
         
         if(player.bet !== 0) sendHand(player);
+        sendUpdate(player,"hit");
     });
 });
 ////////// End Turn //////////
@@ -722,6 +723,7 @@ stand.addEventListener("click", () => {
 ////////// Bet Functions //////////
 
 betReady.addEventListener("click", async() => {
+    sendUpdate(player,"bet");
     timer();
     console.log(JSON.stringify(player));
     player.bet = mainBetTotal;
@@ -729,7 +731,7 @@ betReady.addEventListener("click", async() => {
     sendBet(player, totalBet);
     console.log(player);
 
-    socket.emit("playerReady", [socket.id , player.name]);
+    socket.emit("playerReady", [player.name]);
     
     // Listen for the server's response
     socket.once('playerData', (data) => {
@@ -770,6 +772,7 @@ double.addEventListener("click", async () => {
             hitFunction(player, card);
             if (!hand.done) endTurn(player);
             sendHand(player);
+            sendUpdate(player,"double");
         });
     
     return;
@@ -798,6 +801,7 @@ split.addEventListener("click", async ()=>{
 
         dp(player.name, player.hands, "player");
         sendHand(player);
+        sendUpdate(player,"split");
     });
     return;
 })
@@ -832,5 +836,9 @@ function sendHand(player){
 }
 
 function sendDone(player){
-    socket.emit('done', [socket.id, player.name]);
+    socket.emit('done', [player.name]);
+}
+function sendUpdate(player,update){
+    socket.emit("update", [player.name, update]);
+    appendUpdate(player.name, update);
 }

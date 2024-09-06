@@ -87,7 +87,8 @@
                 player = new initPlayer(userData.nickname, userData.balance);
                 updateSide();
                 document.getElementById('mainBetBalance').textContent = `Bet: ${mainBetTotal}`;
-                socket.emit("join", [socket.id, userData.nickname]);
+                reset(player);
+                socket.emit("join", [userData.nickname]);
             } catch (error) {
                 console.error("Error during connection:", error);
             }
@@ -108,6 +109,7 @@
         let sendMessageButton = document.getElementById("send-message");
         let messageInput = document.getElementById("message-input");
         let messagesDiv = document.getElementById("messages");
+        let updatesDiv = document.getElementById("updates");
     
         sendMessageButton.addEventListener("click", () => {
             let message = messageInput.value;
@@ -115,7 +117,7 @@
                 return;
             }
             socket.emit("message", { message });
-            appendMessage(socket.id, message);
+            appendMessage(player.name, message);
             messageInput.value = "";
         });
     
@@ -131,11 +133,20 @@
             item.textContent = socketId === socket.id ? `You: ${message}` : `${socketId}: ${message}`;
             messagesDiv.appendChild(item);
         }
+        function appendUpdate(name, message) {
+            let item = document.createElement("div");
+            item.textContent = `${name} has ${message}` ;
+            updatesDiv.appendChild(item);
+        }
     
         // Handle incoming messages and events
         socket.on("relay", function (data) {
             console.log("Received message:", data);
             appendMessage(data.socketId, data.message);
+        });
+        socket.on("update", function (data) {
+            console.log("Received update:", data);
+            appendUpdate(data[0], data[1]);
         });
     
         socket.on("start", function (data) {

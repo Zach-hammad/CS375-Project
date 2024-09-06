@@ -257,25 +257,47 @@ body {
 }
 
 #chat {
-    flex: 1;
+    flex: 1; /* This takes up 1/3 of the width */
     padding: 20px;
     box-sizing: border-box;
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* Optional: for better visibility */
     display: flex;
     flex-direction: column;
-    position: relative;
-    margin-top: 20px;
+    position: relative; /* Ensure position:absolute works for child elements */
 }
 
-#chat #message-input, #chat #send-message {
+#updates {
+    flex: 0.7; /* Takes up the top half */
+    overflow: auto; /* Adds scroll if the content overflows */
+    background-color: #e0e0e0; /* Optional: for visibility */
+}
+
+#chat-container {
+    flex: 1; /* Takes up the bottom half */
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Allows absolute positioning of children */
+}
+
+#messages {
+    flex: 1; /* Takes up the available space above the input and button */
+    overflow-y: auto; /* Adds a vertical scrollbar if messages overflow */
+    background-color: #fff; /* Optional: for better visibility */
+    margin-bottom: 10px; /* Spacing between messages and input */
+}
+
+#message-input {
     position: absolute;
-    bottom: 20px;
-    width: calc(100% - 40px);
+    bottom: 20px; /* Adjust to fit above the button */
+    left: 0;
+    width: calc(100% - 60px); /* Adjust for button width and padding */
     box-sizing: border-box;
 }
 
-#chat #send-message {
-    bottom: 10px;
+#send-message {
+    position: absolute;
+    bottom: 10px; /* Adjust as needed */
+    right: 0;
     width: auto;
 }
 

@@ -6,10 +6,9 @@ function initDealer() {
         blackjack: false
     };
 }
-function initPlayer(name, balance, id) {
+function initPlayer(name, balance) {
     return {
         name: name,
-        id: id,
         balance: balance,
         status: "no",
         cards: [],

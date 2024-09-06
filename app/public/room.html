@@ -83,10 +83,13 @@
 </div>
 
     <div id="chat">
-        <p id="lobby-code-display">Lobby:</p>
-        <div id="messages"></div>
-        <input id="message-input" type="text" placeholder="Enter a message" />
-        <button id="send-message">Send</button>
+        <div id="updates"></div>
+        <div id="chat-container">
+            <p id="lobby-code-display">Lobby:</p>
+            <div id="messages"></div>
+            <input id="message-input" type="text" placeholder="Enter a message" />
+            <button id="send-message">Send</button>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
