@@ -602,6 +602,7 @@ function reset(player){
 ////////// Hit Functions //////////
 
 function hitFunction(player, card){
+    console.log('hitFunction called');
     console.log(player.bet);
     let value = 0;
     let hand = player.hands[player.handsDone];

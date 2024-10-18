@@ -70,7 +70,7 @@ function enableGameControls() {
 document.getElementById("logoutButton").addEventListener("click", logout);
 
         // Socket.IO connection setup
-        let socket = io("https://csblackjack.fly.dev");
+        
         
         player = {};
 
