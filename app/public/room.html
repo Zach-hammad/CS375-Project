@@ -4,11 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="../room.css">
-    <title>Demo</title>
+    <title>Blackjack Table</title>
 </head>
 <body>
     <nav>
         <span class="logo">Gamble</span>
+
+        <div id="displayNickname"></div>
+
         <div>
             <a href="/index.html">Home</a>
             <a href="/login.html">Login</a>
@@ -26,11 +29,10 @@
             <button id="hit">HIT</button>
             <button id="stand">STAND</button>
             <button id="double">DOUBLE DOWN</button>
+            <button id="split">SPLIT</button>
+            <button id="insurance">INSURANCE</button>
         </div>
         
-        <button id="split">SPLIT</button>
-        <button id="insurance">INSURANCE</button>
-
         <div id="player"></div>
         <div id="betDisplay">
             <!-- Balance Display -->
@@ -100,10 +102,8 @@
     </div>
     
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        let socket = io("https://csblackjack.fly.dev");
-    </script>
     <script src="/game.js"></script>
     <script src="/room.js"></script>   
+    <script src="displayNickname.js"></script>
 </body>
 </html>

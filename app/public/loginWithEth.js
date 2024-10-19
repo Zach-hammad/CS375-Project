@@ -1,6 +1,8 @@
 window.onload = function() {
   document.getElementById("loginButton").addEventListener("click", loginWithEth);
+  document.getElementById("logoutButton").addEventListener("click", logout);
 
+  // Check for Eth Wallet 
   if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
       try {
@@ -40,6 +42,7 @@ async function loginWithEth() {
 
         // Save the ethAddress as a cookie
         document.cookie = `ethAddress=${encodeURIComponent(account)}; path=/; secure; samesite=strict`;
+        localStorage.setItem('nickname', nickname);
 
         const response = await fetch('/save-nickname', {
             method: 'POST',
@@ -76,8 +79,17 @@ function clearCookies() {
 
 // Logout function
 function logout() {
+    localStorage.removeItem('nickname');
     clearCookies(); // Clear all cookies
     window.location.href = "/login.html"; // Redirect to login page
+}
+
+function getCookie(name){
+    const value = "; ${document.cookie}";
+    const parts = value.split("; ${name}=");
+    if(parts.length === 2){
+        return decodeURIComponent(parts.pop().split(';').shift());
+    }
 }
 
 // Add event listener to logout button
